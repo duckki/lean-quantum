@@ -309,9 +309,9 @@ theorem trace_partial_trace {v : Square n*m} : Tr(partial_trace v) = Tr(v)
         rw prod.eq_iff_fst_eq_snd_eq,
         apply kron_loc_inj; assumption,
     }, {
-        intros,
+        intros x _ h2,
         exfalso,
-        apply a, clear a,
+        apply h2, clear h2,
         use (⟨kron_div x, kron_mod x⟩),
         simp,
     }

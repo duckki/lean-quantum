@@ -1149,11 +1149,11 @@ lemma kron_sum_mul_mul : (∑ x, f x) * (∑ x, g x) = ∑ (x : fin (n * m)), f 
         unfold set.inj_on,
         intros,
         apply kron_to_prod_inj,
-        apply a_2,
+        assumption,
     }, {
-        intros,
+        intros x h1 h2,
         exfalso,
-        apply a,
+        apply h2, clear h2,
         simp,
         use (m * x.fst + x.snd), {
             cases x,
