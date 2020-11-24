@@ -15,11 +15,11 @@ It's built on top of the "mathlib" library written by the Lean Community.
 
   * The `Matrix` type is defined based on the mathlib's `matrix` type, but specialized for complex number and the `fin` range type.
 
-* `matrix.leamms.lean`: Derived facts from the definitions in the matrix.lean.
+* `matrix_leamms.lean`: Derived facts from the definitions in the `matrix.lean` file.
 
 * `matrix_inner_product.lean`: The `inner_product_space` instantiation for the `Matrix` type.
 
-* `quantum.lean`: Definitions for quantum computing, such as measurements and basic states and circuts.
+* `quantum.lean`: Definitions for quantum computing, such as measurements and basic states and circuits.
 
 * `quantum_lemmas.lean`: Derived facts from the definitions in the `quantum.lean` file.
 
