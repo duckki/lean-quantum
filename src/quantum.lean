@@ -1,0 +1,137 @@
+import matrix
+
+open_locale big_operators
+open Matrix
+
+------------------------------------------------------------------------------
+-- Measurement
+
+namespace Matrix
+
+variables {n : ℕ} (s : Vector n)
+
+-- Measurement in the standard basis
+def measure_std_basis (m : fin n) : ℝ := complex.norm_sq (s m 0)
+
+notation `⟦` x `⟧` := measure_std_basis x
+
+-- "projection" and "trace" for paritial measure
+
+-- the projection operator onto the state `s` (aka "observable")
+-- `proj s` can be read as `|ψ⟩⟨ψ|`, when `|ψ⟩ = s`.
+noncomputable
+def proj : Square n := s ⬝ (s†)
+
+noncomputable
+def trace (A : Square n) : ℂ := ∑ i, A i i
+
+notation `Tr(` x `)` := trace x
+
+
+-- partial trace and partial measure
+
+variables {m : ℕ}
+
+-- `n × n` partial traces of `m × m` subcomponents of
+-- `(n * m) × (n * m)` square matrix.
+noncomputable
+def partial_trace (M : Square (n * m)) : Square n
+:= λ i j, ∑ k, M (kron_loc i k) (kron_loc j k)
+
+notation `Tr'(` x `)` := partial_trace x
+
+noncomputable
+def partial_measure_std_basis (v : Vector (n * m)) (i : fin n) : ℝ := |v.proj.partial_trace i i|
+
+notation `⦃` x `⦄` := partial_measure_std_basis x
+
+end Matrix
+
+
+------------------------------------------------------------------------------
+-- Common constant numerals
+
+notation `√2` := real.sqrt 2
+
+-- `1/√2` is not allowed as a notation in Lean. So, use `/√2`, instead.
+notation `/√2` := (1 / (real.sqrt 2) : ℂ)
+
+notation `i/√2` := complex.I / (real.sqrt 2)
+
+
+------------------------------------------------------------------------------
+-- Common states
+
+-- |0⟩ and |1⟩ using `std_basis`
+def ket0 : Matrix 2 1 := std_basis 0
+def ket1 : Matrix 2 1 := std_basis 1
+
+notation `|0⟩` := ket0
+notation `|1⟩` := ket1
+
+-- |00⟩~|11⟩ using `std_basis`
+-- In `ketXY` and `|XY⟩`, `Y` is the least significant bit.
+def ket00 : Matrix 4 1 := std_basis 0
+def ket01 : Matrix 4 1 := std_basis 1
+def ket10 : Matrix 4 1 := std_basis 2
+def ket11 : Matrix 4 1 := std_basis 3
+
+notation `|00⟩` := ket00
+notation `|10⟩` := ket10
+notation `|01⟩` := ket01
+notation `|11⟩` := ket11
+
+noncomputable
+def ket_plus : Vector 2 := vec2DToMatrix
+    (   (/√2 ::ᵥ vector.nil)
+    ::ᵥ (/√2 ::ᵥ vector.nil)
+    ::ᵥ vector.nil )
+
+noncomputable
+def ket_minus : Vector 2 := vec2DToMatrix
+    (   ( /√2 ::ᵥ vector.nil)
+    ::ᵥ (-/√2 ::ᵥ vector.nil)
+    ::ᵥ vector.nil )
+
+notation `|+⟩` := ket_plus
+notation `|-⟩` := ket_minus
+
+-- |00...0⟩ (= |0⟩ ⊗ ... ⊗ |0⟩ or the `n`-th tensor power of |0⟩).
+-- Used for zero padding or ancillae qubits.
+def ket_zeros (n : ℕ) : Vector (2^n) := std_basis ⟨0, by simp⟩
+
+-- |Φ+⟩ : One of the four bell states
+noncomputable
+def ket_phi_plus : Vector 4 := vec2DToMatrix
+    (   (/√2 ::ᵥ vector.nil)
+    ::ᵥ (  0 ::ᵥ vector.nil)
+    ::ᵥ (  0 ::ᵥ vector.nil)
+    ::ᵥ (/√2 ::ᵥ vector.nil)
+    ::ᵥ vector.nil )
+
+notation `|Φ+⟩` := ket_phi_plus
+
+
+------------------------------------------------------------------------------
+-- Common gates
+
+-- X gate (aka NOT gate)
+def X : Matrix 2 2 := vec2DToMatrix
+    (   (0 ::ᵥ 1 ::ᵥ vector.nil)
+    ::ᵥ (1 ::ᵥ 0 ::ᵥ vector.nil)
+    ::ᵥ vector.nil )
+
+-- Hadamard gate
+noncomputable
+def H : Matrix 2 2 := vec2DToMatrix
+    (   (/√2 ::ᵥ  /√2 ::ᵥ vector.nil)
+    ::ᵥ (/√2 ::ᵥ -/√2 ::ᵥ vector.nil)
+    ::ᵥ vector.nil )
+
+-- Controlled-NOT gate (aka CX gate)
+def CNOT : Matrix 4 4 := vec2DToMatrix
+    (   (1 ::ᵥ 0 ::ᵥ 0 ::ᵥ 0 ::ᵥ vector.nil)
+    ::ᵥ (0 ::ᵥ 1 ::ᵥ 0 ::ᵥ 0 ::ᵥ vector.nil)
+    ::ᵥ (0 ::ᵥ 0 ::ᵥ 0 ::ᵥ 1 ::ᵥ vector.nil)
+    ::ᵥ (0 ::ᵥ 0 ::ᵥ 1 ::ᵥ 0 ::ᵥ vector.nil)
+    ::ᵥ vector.nil )
