@@ -677,6 +677,16 @@ end
 end vector_nth
 
 
+section fin_succ
+
+-- following lemmas are shortcuts for speeding up the `simp` tactic.
+
+@[simp] lemma fin_one_succ : (⟨(1 : ℕ).succ, by dec_trivial⟩ : fin 4) = ⟨2, by dec_trivial⟩ := by norm_num
+@[simp] lemma fin_one_succ_succ : (⟨(1 : ℕ).succ.succ, by dec_trivial⟩ : fin 4) = ⟨3, by dec_trivial⟩ := by norm_num
+
+end fin_succ
+
+
 ------------------------------------------------------------------------------
 -- dot_product proof automation
 
@@ -685,12 +695,13 @@ meta def finish_complex_arith :=
             <|> rw_mod_cast complex.conj_of_real
             <|> rw_mod_cast real.sqr_sqrt
             <|> refl
+            <|> dec_trivial
             <|> ring
-            <|> linarith }]
+            <|> linarith
+        }]
 
 meta def grind_dot_product :=
     `[
-        try {unfold vec2DToMatrix},
         try {unfold matrix.mul matrix.dot_product},
         try {unfold Matrix.adjoint},
         rw finset.sum_fin_eq_sum_range,
@@ -752,14 +763,17 @@ meta def destruct_fin_one (h : expr) : tactic unit
     | _ := tactic.fail ()
     end
 
-meta def destruct_fin_bit0 (h : expr) : tactic unit
+meta def destruct_fin_succ (h : expr) : tactic unit
 := do
     t ← tactic.infer_type h,
     match t with
+    | `(fin (nat.succ %%n)) := tactic.cases h list.nil >> return ()
     | `(fin (bit0 %%n)) := tactic.cases h list.nil >> return ()
+    | `(%%x < (nat.succ %%y)) :=
+        do  c ← find_local_const x,
+            tactic.cases c list.nil >> return ()
     | `(%%x < (bit0 %%y)) :=
-        do
-            c ← find_local_const x,
+        do  c ← find_local_const x,
             tactic.cases c list.nil >> return ()
     | _ := tactic.fail ()
     end
@@ -770,7 +784,7 @@ meta def destruct_fin : tactic unit
     ctx ← tactic.local_context,
     finish_fin_out_of_range
     <|> ctx.mfirst (λ h, destruct_fin_one h)
-    <|> ctx.mfirst (λ h, destruct_fin_bit0 h)
+    <|> ctx.mfirst (λ h, destruct_fin_succ h)
 
 -- case split on all matrix coordinates
 meta def grind_matrix : tactic unit
@@ -792,26 +806,25 @@ meta def unfold_qubits : tactic unit
 @[simp] lemma ket1_unit : |1⟩† ⬝ |1⟩ = 1 := by {unfold_qubits, simp}
 
 meta def unit_vector : tactic unit
-:= tactic.applyc ``vec2DToMatrix_unit; unfold_qubits; grind_dot_product; finish_complex_arith
+:= `[apply matrix.ext; intros; unfold_qubits; grind_dot_product; finish_complex_arith]
 
 @[simp] lemma ket_plus_unit : (|+⟩†) ⬝ |+⟩ = 1 := by unit_vector
 @[simp] lemma ket_minus_unit : (|-⟩†) ⬝ |-⟩ = 1 := by unit_vector
 
 meta def solve_vector_eq := `[unfold_qubits; grind_matrix; `[simp]]
 
-lemma ket_plus_alt_def  : |+⟩ = (/√2 • |0⟩) + (/√2 • |1⟩) := by solve_vector_eq
+lemma ket_plus_alt_def : |+⟩ = (/√2 • |0⟩) + (/√2 • |1⟩) := by solve_vector_eq
 lemma ket_minus_alt_def : |-⟩ = (/√2 • |0⟩) + (-/√2 • |1⟩) := by solve_vector_eq
 
 @[simp] lemma ket_zeros_unit {n : ℕ} : (((ket_zeros n)†) ⬝ (ket_zeros n) = 1)
-:= begin
-    unfold ket_zeros, simp,
-end
+:= by {unfold ket_zeros, simp}
 
 @[simp] lemma ket_phi_plus_unit : ket_phi_plus† ⬝ ket_phi_plus = 1
-:= begin
-    unfold ket_phi_plus,
-    unit_vector,
-end
+:= by {unfold ket_phi_plus, unit_vector}
+
+@[simp]
+lemma vec_head_fin_one (f : fin 1 → ℂ) : vec_head (λ x : fin 1, f x) = f 0
+:= by refl
 
 lemma ket_phi_plus_alt_def : ket_phi_plus = /√2 • (|00⟩) + /√2 • (|11⟩)
 := begin
@@ -820,24 +833,21 @@ lemma ket_phi_plus_alt_def : ket_phi_plus = /√2 • (|00⟩) + /√2 • (|11�
     grind_matrix, {
         simp,
         rw std_basis_eq_zero, simp,
-        intro h,
-        cases h,
+        intro c, cases c,
     }, {
         simp,
         right, rw std_basis_eq_zero,
-        intro h, cases h,
+        intro c, cases c,
     }, {
         simp,
         iterate 2 {rw std_basis_eq_zero},
         simp,
-        intro h, cases h,
-        intro h, cases h,
+        intro c, cases c,
+        intro c, cases c,
     }, {
         simp,
         rw std_basis_eq_zero, simp,
-        rw std_basis_eq_one, simp,
-        refl,
-        intro h, cases h,
+        intro c, cases c,
     }
 end
 
@@ -849,6 +859,23 @@ lemma ket_phi_plus_alt_def' : ket_phi_plus = /√2 • (|0⟩ ⊗ |0⟩) + /√2
     congr,
 end
 
+-- The "unit" flavor (`s.unit`), instead of `s† ⬝ s`.
+@[simp] lemma ket0_unit': |0⟩.unit := by {unfold ket0, simp}
+@[simp] lemma ket1_unit': |1⟩.unit := by {unfold ket1, simp}
+@[simp] lemma ket_plus_unit': |+⟩.unit := by {unfold matrix.unit, simp}
+@[simp] lemma ket_minus_unit': |-⟩.unit := by {unfold matrix.unit, simp}
+
+
+------------------------------------------------------------------------------------------------
+-- Inner product values
+
+-- This could be read as `⟨0|+⟩` on books.
+@[simp] lemma inner_ket0_ket_plus :  ⟪ |0⟩, |+⟩ ⟫ = (/√2 : ℂ)
+:= begin
+    unfold inner Matrix.inner_product,
+    unfold_qubits; grind_dot_product; finish_complex_arith,
+end
+
 
 ------------------------------------------------------------------------------------------------
 -- gate lemmas
@@ -858,7 +885,30 @@ meta def solve_matrix_mul := `[unfold_gates; unfold_qubits; grind_matrix; grind_
 
 @[simp] lemma X_unitary : X† ⬝ X = 1 := by solve_matrix_mul
 @[simp] lemma H_unitary : H† ⬝ H = 1 := by solve_matrix_mul
-@[simp] lemma CNOT_unitary : CNOT† ⬝ CNOT = 1 := by solve_matrix_mul
+
+meta def solve_matrix_apply_eq := `[unfold_gates; grind_dot_product; finish_complex_arith]
+
+@[simp] lemma CNOT_self_inner_0_0 : (CNOT† ⬝ CNOT) 0 0 = 1 := by solve_matrix_apply_eq
+@[simp] lemma CNOT_self_inner_0_1 : (CNOT† ⬝ CNOT) 0 1 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CNOT_self_inner_0_2 : (CNOT† ⬝ CNOT) 0 2 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CNOT_self_inner_0_3 : (CNOT† ⬝ CNOT) 0 3 = 0 := by solve_matrix_apply_eq
+
+@[simp] lemma CNOT_self_inner_1_0 : (CNOT† ⬝ CNOT) 1 0 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CNOT_self_inner_1_1 : (CNOT† ⬝ CNOT) 1 1 = 1 := by solve_matrix_apply_eq
+@[simp] lemma CNOT_self_inner_1_2 : (CNOT† ⬝ CNOT) 1 2 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CNOT_self_inner_1_3 : (CNOT† ⬝ CNOT) 1 3 = 0 := by solve_matrix_apply_eq
+
+@[simp] lemma CNOT_self_inner_2_0 : (CNOT† ⬝ CNOT) 2 0 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CNOT_self_inner_2_1 : (CNOT† ⬝ CNOT) 2 1 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CNOT_self_inner_2_2 : (CNOT† ⬝ CNOT) 2 2 = 1 := by solve_matrix_apply_eq
+@[simp] lemma CNOT_self_inner_2_3 : (CNOT† ⬝ CNOT) 2 3 = 0 := by solve_matrix_apply_eq
+
+@[simp] lemma CNOT_self_inner_3_0 : (CNOT† ⬝ CNOT) 3 0 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CNOT_self_inner_3_1 : (CNOT† ⬝ CNOT) 3 1 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CNOT_self_inner_3_2 : (CNOT† ⬝ CNOT) 3 2 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CNOT_self_inner_3_3 : (CNOT† ⬝ CNOT) 3 3 = 1 := by solve_matrix_apply_eq
+
+@[simp] lemma CNOT_unitary : CNOT† ⬝ CNOT = 1 := by {grind_matrix; finish_complex_arith}
 
 
 ------------------------------------------------------------------------------
@@ -910,21 +960,3 @@ end
 
 @[simp] lemma sqrt_two_inv_mul_self : (√2)⁻¹ * (√2)⁻¹ = 1/2
 := by {rw <- mul_inv'; simp}
-
--- @[simp] lemma sqrt_two_mul_one_over_sqrt_two : (√2 * /√2 : ℂ) = 1 := by simp
-
-
-------------------------------------------------------------------------------
--- Matrix constants lemmas for proof automation
-
-@[simp] lemma ket0_unit': |0⟩.unit := by {unfold ket0, simp}
-@[simp] lemma ket1_unit': |1⟩.unit := by {unfold ket1, simp}
-@[simp] lemma ket_plus_unit': |+⟩.unit := by {unfold matrix.unit, simp}
-@[simp] lemma ket_minus_unit': |-⟩.unit := by {unfold matrix.unit, simp}
-
--- Could be read as `⟨0|+⟩` on books
-@[simp] lemma inner_ket0_ket_plus :  ⟪ |0⟩, |+⟩ ⟫ = (/√2 : ℂ)
-:= begin
-    unfold inner Matrix.inner_product,
-    unfold_qubits; grind_dot_product; finish_complex_arith,
-end

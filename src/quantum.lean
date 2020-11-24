@@ -63,18 +63,18 @@ notation `i/√2` := complex.I / (real.sqrt 2)
 -- Common states
 
 -- |0⟩ and |1⟩ using `std_basis`
-def ket0 : Matrix 2 1 := std_basis 0
-def ket1 : Matrix 2 1 := std_basis 1
+def ket0 : Vector 2 := std_basis 0
+def ket1 : Vector 2 := std_basis 1
 
 notation `|0⟩` := ket0
 notation `|1⟩` := ket1
 
 -- |00⟩~|11⟩ using `std_basis`
 -- In `ketXY` and `|XY⟩`, `Y` is the least significant bit.
-def ket00 : Matrix 4 1 := std_basis 0
-def ket01 : Matrix 4 1 := std_basis 1
-def ket10 : Matrix 4 1 := std_basis 2
-def ket11 : Matrix 4 1 := std_basis 3
+def ket00 : Vector 4 := std_basis 0
+def ket01 : Vector 4 := std_basis 1
+def ket10 : Vector 4 := std_basis 2
+def ket11 : Vector 4 := std_basis 3
 
 notation `|00⟩` := ket00
 notation `|10⟩` := ket10
@@ -82,16 +82,14 @@ notation `|01⟩` := ket01
 notation `|11⟩` := ket11
 
 noncomputable
-def ket_plus : Vector 2 := vec2DToMatrix
-    (   (/√2 ::ᵥ vector.nil)
-    ::ᵥ (/√2 ::ᵥ vector.nil)
-    ::ᵥ vector.nil )
+def ket_plus : Vector 2 := ![
+    ![ /√2 ],
+    ![ /√2 ]]
 
 noncomputable
-def ket_minus : Vector 2 := vec2DToMatrix
-    (   ( /√2 ::ᵥ vector.nil)
-    ::ᵥ (-/√2 ::ᵥ vector.nil)
-    ::ᵥ vector.nil )
+def ket_minus : Vector 2 := ![
+    ![  /√2 ],
+    ![ -/√2 ]]
 
 notation `|+⟩` := ket_plus
 notation `|-⟩` := ket_minus
@@ -102,12 +100,11 @@ def ket_zeros (n : ℕ) : Vector (2^n) := std_basis ⟨0, by simp⟩
 
 -- |Φ+⟩ : One of the four bell states
 noncomputable
-def ket_phi_plus : Vector 4 := vec2DToMatrix
-    (   (/√2 ::ᵥ vector.nil)
-    ::ᵥ (  0 ::ᵥ vector.nil)
-    ::ᵥ (  0 ::ᵥ vector.nil)
-    ::ᵥ (/√2 ::ᵥ vector.nil)
-    ::ᵥ vector.nil )
+def ket_phi_plus : Vector 4 := ![
+    ![ /√2 ],
+    ![   0 ],
+    ![   0 ],
+    ![ /√2 ]]
 
 notation `|Φ+⟩` := ket_phi_plus
 
@@ -116,22 +113,19 @@ notation `|Φ+⟩` := ket_phi_plus
 -- Common gates
 
 -- X gate (aka NOT gate)
-def X : Matrix 2 2 := vec2DToMatrix
-    (   (0 ::ᵥ 1 ::ᵥ vector.nil)
-    ::ᵥ (1 ::ᵥ 0 ::ᵥ vector.nil)
-    ::ᵥ vector.nil )
+def X : Square 2 := ![
+    ![ 0, 1 ],
+    ![ 1, 0 ]]
 
 -- Hadamard gate
 noncomputable
-def H : Matrix 2 2 := vec2DToMatrix
-    (   (/√2 ::ᵥ  /√2 ::ᵥ vector.nil)
-    ::ᵥ (/√2 ::ᵥ -/√2 ::ᵥ vector.nil)
-    ::ᵥ vector.nil )
+def H : Square 2 := ![
+    ![ /√2,  /√2 ],
+    ![ /√2, -/√2 ]]
 
 -- Controlled-NOT gate (aka CX gate)
-def CNOT : Matrix 4 4 := vec2DToMatrix
-    (   (1 ::ᵥ 0 ::ᵥ 0 ::ᵥ 0 ::ᵥ vector.nil)
-    ::ᵥ (0 ::ᵥ 1 ::ᵥ 0 ::ᵥ 0 ::ᵥ vector.nil)
-    ::ᵥ (0 ::ᵥ 0 ::ᵥ 0 ::ᵥ 1 ::ᵥ vector.nil)
-    ::ᵥ (0 ::ᵥ 0 ::ᵥ 1 ::ᵥ 0 ::ᵥ vector.nil)
-    ::ᵥ vector.nil )
+def CNOT : Square 4 := ![
+    ![ 1, 0, 0, 0 ],
+    ![ 0, 1, 0, 0 ],
+    ![ 0, 0, 0, 1 ],
+    ![ 0, 0, 1, 0 ]]

@@ -112,10 +112,3 @@ def kron_loc (r : fin m) (v : fin p) : fin (m * p) :=
 end kron
 
 infixl ` ⊗ `:75 := kron  -- same as ` ⬝ ` for now
-
-
-------------------------------------------------------------------------------
--- Conversion from 2D vector to Matrix
-
-def vec2DToMatrix {m n} (l : vector (vector ℂ n) m) : Matrix m n
-:= λ i j, (l.nth i).nth j
