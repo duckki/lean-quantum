@@ -598,6 +598,31 @@ end partial_measure
 
 
 ------------------------------------------------------------------------------
+-- std_basis lemmas for proof automation
+
+meta def solve_std_basis_zero := `[rw std_basis_eq_zero, dec_trivial]
+
+@[simp] lemma std_basis_0_2_1 : (std_basis 0 : Vector 2) 1 0 = 0 := by solve_std_basis_zero
+@[simp] lemma std_basis_1_2_0 : (std_basis 1 : Vector 2) 0 0 = 0 := by solve_std_basis_zero
+
+@[simp] lemma std_basis_0_4_1 : (std_basis 0 : Vector 4) 1 0 = 0 := by solve_std_basis_zero
+@[simp] lemma std_basis_0_4_2 : (std_basis 0 : Vector 4) 2 0 = 0 := by solve_std_basis_zero
+@[simp] lemma std_basis_0_4_3 : (std_basis 0 : Vector 4) 3 0 = 0 := by solve_std_basis_zero
+
+@[simp] lemma std_basis_1_4_0 : (std_basis 1 : Vector 4) 0 0 = 0 := by solve_std_basis_zero
+@[simp] lemma std_basis_1_4_2 : (std_basis 1 : Vector 4) 2 0 = 0 := by solve_std_basis_zero
+@[simp] lemma std_basis_1_4_3 : (std_basis 1 : Vector 4) 3 0 = 0 := by solve_std_basis_zero
+
+@[simp] lemma std_basis_2_4_0 : (std_basis 2 : Vector 4) 0 0 = 0 := by solve_std_basis_zero
+@[simp] lemma std_basis_2_4_1 : (std_basis 2 : Vector 4) 1 0 = 0 := by solve_std_basis_zero
+@[simp] lemma std_basis_2_4_3 : (std_basis 2 : Vector 4) 3 0 = 0 := by solve_std_basis_zero
+
+@[simp] lemma std_basis_3_0_1 : (std_basis 3 : Vector 4) 0 0 = 0 := by solve_std_basis_zero
+@[simp] lemma std_basis_3_4_1 : (std_basis 3 : Vector 4) 1 0 = 0 := by solve_std_basis_zero
+@[simp] lemma std_basis_3_4_2 : (std_basis 3 : Vector 4) 2 0 = 0 := by solve_std_basis_zero
+
+
+------------------------------------------------------------------------------
 -- vector lemmas for proof automation
 
 section vector_nth
@@ -829,26 +854,7 @@ lemma vec_head_fin_one (f : fin 1 → ℂ) : vec_head (λ x : fin 1, f x) = f 0
 lemma ket_phi_plus_alt_def : ket_phi_plus = /√2 • (|00⟩) + /√2 • (|11⟩)
 := begin
     unfold ket_phi_plus,
-    unfold_qubits,
-    grind_matrix, {
-        simp,
-        rw std_basis_eq_zero, simp,
-        intro c, cases c,
-    }, {
-        simp,
-        right, rw std_basis_eq_zero,
-        intro c, cases c,
-    }, {
-        simp,
-        iterate 2 {rw std_basis_eq_zero},
-        simp,
-        intro c, cases c,
-        intro c, cases c,
-    }, {
-        simp,
-        rw std_basis_eq_zero, simp,
-        intro c, cases c,
-    }
+    solve_vector_eq,
 end
 
 lemma ket_phi_plus_alt_def' : ket_phi_plus = /√2 • (|0⟩ ⊗ |0⟩) + /√2 • (|1⟩ ⊗ |1⟩)
