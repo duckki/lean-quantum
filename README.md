@@ -1,6 +1,6 @@
 # Quantum Computing in Lean
 
-This is an implementation of the theory of quantum computing in the Lean programming language (using the Lean theorem prover verion 3).
+This is an implementation of the theory of quantum computing in the Lean programming language (using the Lean theorem prover version 3).
 
 It's built on top of the "mathlib" library written by the Lean Community.
 
@@ -15,7 +15,7 @@ It's built on top of the "mathlib" library written by the Lean Community.
 
   * The `Matrix` type is defined based on the mathlib's `matrix` type, but specialized for complex number and the `fin` range type.
 
-* `matrix_leamms.lean`: Derived facts from the definitions in the `matrix.lean` file.
+* `matrix_lemmas.lean`: Derived facts from the definitions in the `matrix.lean` file.
 
 * `matrix_inner_product.lean`: The `inner_product_space` instantiation for the `Matrix` type.
 
