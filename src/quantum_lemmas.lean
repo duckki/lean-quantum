@@ -65,24 +65,61 @@ end measurement
 
 section proj
 
-variables {n : ℕ} (s : Vector n)
+variables {n : ℕ} {s t : Vector n}
 
 -- `proj s` is self-adjoint (aka "Hermitian").
 @[simp]
-lemma proj_self_adjoint : ((proj s)†) = proj s
+lemma proj_self_adjoint (s : Vector n) : ((proj s)†) = proj s
 := begin
     unfold proj,
     rw adjoint_mul, simp,
 end
 
-lemma proj_kron {m} (t : Vector m) : proj (s ⊗ t) = proj s ⊗ proj t
+lemma outer_product_diagnonal_apply {i : fin n}
+        : (s ⬝ t†) i i = (s i 0) * (t i 0).conj
+:= begin
+    unfold matrix.mul adjoint matrix.dot_product,
+    rw finset.sum_fin_eq_sum_range,
+    rw finset.sum_eq_single 0,
+    rw dif_pos; simp,
+    simp,
+    simp,
+end
+
+lemma outer_product_self_diagnonal_apply_eq_norm_sq {i : fin n}
+        : (s ⬝ s†) i i = (s i 0).norm_sq
+:= begin
+    rw outer_product_diagnonal_apply, simp,
+end
+
+lemma proj_diagnonal_eq_mul_conj {i : fin n} : s.proj i i = (s i 0)† * s i 0
+:= begin
+    unfold proj,
+    rw outer_product_diagnonal_apply,
+    ring,
+end
+
+lemma proj_diagnonal_eq_norm_sq {i : fin n} : s.proj i i = (s i 0).norm_sq
+:= begin
+    rw proj_diagnonal_eq_mul_conj, simp,
+end
+
+end proj
+
+
+section proj_kron
+
+variables {n : ℕ} {s : Vector n}
+variables {m : ℕ} {t : Vector m}
+
+lemma proj_kron : proj (s ⊗ t) = proj s ⊗ proj t
 := begin
     unfold proj,
     rw adjoint_kron,
     rw kron_mixed_prod,
 end
 
-lemma proj_kron_apply {m} {s : Vector n} {t : Vector m} {i : fin n} {j : fin m}
+lemma proj_kron_apply {i : fin n} {j : fin m}
     : proj (s ⊗ t) (kron_loc i j) (kron_loc i j)
       = proj s i i * proj t j j
 := begin
@@ -107,22 +144,7 @@ lemma proj_kron_apply {m} {s : Vector n} {t : Vector m} {i : fin n} {j : fin m}
     }
 end
 
-lemma proj_diagnonal_eq_mul_conj {i : fin n} : s.proj i i = (s i 0)† * s i 0
-:= begin
-    unfold proj,
-    rw matrix.mul_apply,
-    rw finset.sum_fin_eq_sum_range,
-    rw finset.sum_range_one,
-    rw dif_pos; try {solve1 {linarith}}, simp,
-    unfold adjoint, simp,
-end
-
-lemma proj_diagnonal_eq_norm_sq {i : fin n} : s.proj i i = (s i 0).norm_sq
-:= begin
-    rw proj_diagnonal_eq_mul_conj, simp,
-end
-
-end proj
+end proj_kron
 
 
 ------------------------------------------------------------------------------
@@ -271,13 +293,39 @@ lemma trace_proj_inner_prod : Tr(proj (s† ⬝ t)) = Tr(proj s ⬝ proj t)
     rw _root_.trace_mul_comm,
 end
 
+lemma conj_trace_outer_product : Tr(s ⬝ t†)† = Tr(s† ⬝ t)
+:= begin
+    have f1: (t ⬝ s†)† = (s ⬝ t†), {
+        rw adjoint_mul, simp,
+    },
+    rw <- f1,
+    rw trace_adjoint, simp,
+    apply trace_outer_eq_trace_inner,
+end
+
 end trace_proj
 
 
 ------------------------------------------------------------------------------
 -- partial_trace lemmas
 
-section partial_trace
+section partial_trace_add
+
+variables {n m : ℕ} {x y : Square n * m}
+
+lemma partial_trace_add : partial_trace (x + y) = partial_trace x + partial_trace y
+:= begin
+    unfold partial_trace Matrix.trace,
+    apply funext, intros k,
+    apply funext, intros i,
+    simp,
+    rw finset.sum_add_distrib,
+end
+
+end partial_trace_add
+
+
+section partial_trace_kron
 
 variables {n m : ℕ} (v : Square n) (w : Square m)
 
@@ -333,7 +381,7 @@ lemma partial_trace_kron_neq {o} (x y : Square o): Tr(v) = Tr(w)
     cases c, apply partial_trace_kron_eq, assumption,
 end
 
-end partial_trace
+end partial_trace_kron
 
 
 section partial_trace_proj
@@ -598,6 +646,138 @@ end partial_measure
 
 
 ------------------------------------------------------------------------------
+-- partial_measure_add_kron
+
+section partial_measure_add_kron
+
+variables {n : ℕ} {a b : Vector n}
+variables {m : ℕ} {s t : Vector m}
+
+lemma partial_measure_add_kron_rhs {a b k : ℂ}
+        : ((a + b).norm_sq : ℂ) - (2 * ((1 - k) * (a * b†)).re : ℝ)
+            = (a.norm_sq + b.norm_sq : ℂ) + (2 * (k * (a * b.conj)).re : ℝ)
+:= begin
+    have l1: ((a + b).norm_sq : ℂ)
+                = (a.norm_sq + b.norm_sq)
+                    + (2 * (a * b.conj).re : ℝ), {
+        rw <- complex.conj_mul' (a + b),
+        repeat { rw complex.conj.map_add },
+        repeat { rw add_mul },
+        repeat { rw mul_add },
+        have l1_1: a * b.conj + b * a.conj
+                = (2 * (a * b.conj).re : ℝ), {
+            rw <- complex.add_conj,
+            congr, simp, ring,
+        },
+        rw <- l1_1, clear l1_1,
+        simp, ring,
+    },
+    rw l1, clear l1,
+
+    rw add_sub_assoc (a.norm_sq + b.norm_sq : ℂ),
+    congr' 1,
+    repeat { rw sub_mul },
+    repeat { rw two_mul },
+    rw complex.sub_re,
+    rw is_R_or_C.conj_to_complex,
+    norm_cast, ring,
+    rw <- sub_sub,
+    rw <- sub_add,
+    rw <- sub_add,
+    repeat { rw <- mul_assoc },
+    ring,
+end
+
+lemma partial_measure_add_kron : Tr(proj s) = 1 → Tr(proj t) = 1
+        → ⦃ a ⊗ s + b ⊗ t ⦄
+            = λ i, |(a i 0 + b i 0).norm_sq
+                    - 2 * ((1 - Tr(s ⬝ t†)) * (a i 0 * (b i 0)†)).re|
+:= begin
+    intros su tu,
+    ext i,
+
+    have lhs: ⦃a ⊗ s + b ⊗ t⦄ i
+                = |((a ⬝ a†) i i + (b ⬝ b†) i i) + (Tr(s ⬝ t†) • ((a ⬝ b†) i i) + Tr(t ⬝ s†) • ((b ⬝ a†) i i))|,
+    {
+        unfold partial_measure_std_basis,
+        rw proj_add_kron,
+        repeat { rw partial_trace_add },
+        repeat { rw partial_trace_kron },
+        unfold proj at su,
+        unfold proj at tu,
+        rw su, rw tu,
+        simp,
+        congr' 1,
+        ring,
+    },
+    rw lhs, clear lhs,
+    iterate 2 { rw outer_product_self_diagnonal_apply_eq_norm_sq },
+    iterate 2 { rw outer_product_diagnonal_apply },
+
+    have rhs: (((a i 0 + b i 0).norm_sq - 2 * ((1 - Tr(s ⬝ t†)) * (a i 0 * (b i 0)†)).re : ℝ) : ℂ)
+            = ((a i 0).norm_sq + (b i 0).norm_sq : ℂ)
+                    + (2 * (Tr(s ⬝ t†) * (a i 0 * (b i 0).conj)).re : ℝ), {
+        apply_mod_cast partial_measure_add_kron_rhs,
+    },
+    rw complex.abs_of_real',
+    rw rhs,
+
+    congr' 1,
+    congr' 1,
+
+    have f1: Tr(s ⬝ t†) * (a i 0 * (b i 0).conj) + Tr(t ⬝ s†) * (b i 0 * (a i 0).conj)
+           = (2 * (Tr(s ⬝ t†) * (a i 0 * (b i 0).conj)).re : ℝ), {
+        rw <- complex.add_conj,
+        simp,
+        congr' 1, {
+            rw <- adjoint_involutive t,
+            rw <- adjoint_mul,
+            rw trace_adjoint,
+            simp,
+        }, {
+            ring,
+        }
+    },
+    apply f1,
+end
+
+lemma partial_measure_add_kron' : Tr(proj s) = 1 → Tr(proj t) = 1
+        → ⦃ a ⊗ s + b ⊗ t ⦄
+            = λ i, |(a i 0 + b i 0).norm_sq
+                    - 2 * ((1 - Tr(s† ⬝ t)) * ((a i 0)† * b i 0)).re|
+:= begin
+    intros su tu,
+    rw partial_measure_add_kron su tu,
+    ext i,
+
+    have f1: ((1 - Tr(s ⬝ t†)) * (a i 0 * (b i 0)†)).re
+                = ((1 - Tr(s† ⬝ t)) * ((a i 0)† * b i 0)).re, {
+        rw <- complex.re_conj_eq_re,
+        congr' 1,
+        simp,
+        left,
+        rw <- is_R_or_C.conj_to_complex,
+        rw conj_trace_outer_product,
+    },
+    rw f1,
+end
+
+lemma partial_measure_add_kron_of_orthogonal : Tr(proj s) = 1 → Tr(proj t) = 1
+        → (∀ i, (a i 0)† * b i 0 = 0)
+        → ⦃ a ⊗ s + b ⊗ t ⦄ = ⟦ a + b ⟧
+:= begin
+    intros su tu h,
+    rw partial_measure_add_kron' su tu,
+    ext i,
+    rw h, simp,
+    unfold measure_std_basis,
+    apply abs_of_nonneg, simp,
+end
+
+end partial_measure_add_kron
+
+
+------------------------------------------------------------------------------
 -- std_basis lemmas for proof automation
 
 meta def solve_std_basis_zero := `[rw std_basis_eq_zero, dec_trivial]
@@ -702,14 +882,32 @@ end
 end vector_nth
 
 
-section fin_succ
+------------------------------------------------------------------------------
+-- More proof automation lemmas related to "fin" type.
 
--- following lemmas are shortcuts for speeding up the `simp` tactic.
+@[instance]
+lemma fin_has_zero_one_by_one : has_zero (fin (1 * 1))
+:= by {split, exact ⟨0, by dec_trivial⟩}
+
+@[instance]
+lemma fin_has_zero_two_by_two : has_zero (fin (2 * 2))
+:= by {split, exact ⟨0, by dec_trivial⟩}
+
+@[instance]
+lemma fin_has_one_two_by_two : has_one (fin (2 * 2))
+:= by {split, exact ⟨1, by dec_trivial⟩}
+
 
 @[simp] lemma fin_one_succ : (⟨(1 : ℕ).succ, by dec_trivial⟩ : fin 4) = ⟨2, by dec_trivial⟩ := by norm_num
 @[simp] lemma fin_one_succ_succ : (⟨(1 : ℕ).succ.succ, by dec_trivial⟩ : fin 4) = ⟨3, by dec_trivial⟩ := by norm_num
 
-end fin_succ
+@[simp] lemma fin_0_div_1 : (⟨(0 : fin 1) / 2, by dec_trivial⟩ : fin 2) = ⟨0, by dec_trivial⟩ := by norm_num
+@[simp] lemma fin_0_mod_1 : (⟨(0 : fin 1) % 2, by dec_trivial⟩ : fin 2) = ⟨0, by dec_trivial⟩ := by norm_num
+@[simp] lemma fin_1_div_2 : (⟨1 / 2, by dec_trivial⟩ : fin 2) = ⟨0, by dec_trivial⟩ := by norm_num
+@[simp] lemma fin_1_div_2' : (⟨(1 : fin (2*2)) / 2, by dec_trivial⟩ : fin 2) = ⟨0, by dec_trivial⟩ := by norm_cast
+@[simp] lemma fin_1_mod_2 : (⟨(1 : fin (2*2)) % 2, by dec_trivial⟩ : fin 2) = ⟨1, by dec_trivial⟩ := by norm_cast
+@[simp] lemma fin_3_div_2 : (⟨(3 : fin (3+1)) / 2, by dec_trivial⟩ : fin 2) = ⟨1, by dec_trivial⟩ := by norm_cast
+@[simp] lemma fin_3_mod_2 : (⟨(3 : fin (3+1)) % 2, by dec_trivial⟩ : fin 2) = ⟨1, by dec_trivial⟩ := by norm_cast
 
 
 ------------------------------------------------------------------------------

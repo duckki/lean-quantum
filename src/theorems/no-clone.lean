@@ -277,3 +277,123 @@ theorem no_clone_3 {n}
     apply c3,
     rw <- c2, assumption,
 end
+
+
+------------------------------------------------------------------------------
+-- no-clone theorem 3 (with 1 input qubit and (n+1) ancilla qubits)
+-- Alternative proof based on partial measure.
+
+lemma no_clone_3_alt_helper1 (i : fin 4) : (/√2 • (|0⟩ ⊗ |0⟩) i 0)† * (/√2 • (|1⟩ ⊗ |1⟩)) i 0 = 0
+:= begin
+    unfold_qubits,
+    unfold kron kron_div kron_mod,
+    repeat { destruct_fin }; simp,
+end
+
+lemma no_clone_3_alt_helper2 : ⟦(|+⟩ ⊗ |+⟩)⟧ 1 = 1/4
+:= begin
+    unfold measure_std_basis,
+    unfold_qubits,
+    unfold kron kron_div kron_mod,
+    repeat { destruct_fin }; simp; ring,
+end
+
+lemma no_clone_3_alt_helper3 : ⟦(/√2 • (|0⟩ ⊗ |0⟩)) + (/√2 • (|1⟩ ⊗ |1⟩))⟧ 1 = 0
+:= begin
+    unfold measure_std_basis,
+    unfold_qubits,
+    unfold kron kron_div kron_mod,
+    repeat { destruct_fin }; simp,
+end
+
+theorem no_clone_3_alt {n}
+    : ¬ (∃ (U : Square (2 ^ (n + 2))) (f : (Vector 2) → Vector (2^n))
+         , U.unitary
+         ∧ (∀ s : Vector 2, s.unit → U ⬝ (s ⊗ (|0^(n+1)⟩)) = (s ⊗ (s ⊗ (f s)))))
+:= begin
+    by_contradiction H,
+    rcases H with ⟨U, ⟨f, H⟩⟩,
+    rcases H with ⟨u, H⟩,
+
+    let U_0 := (H (|0⟩)),
+    let U_1 := (H (|1⟩)),
+    let U_plus := (H |+⟩),
+
+    -- Step 1. Compute the state after cloning |+⟩
+    have step1 : U ⬝ (|+⟩ ⊗ |0^(n+1)⟩) = /√2 • U ⬝ (|0⟩ ⊗ |0^(n+1)⟩)
+                                      + /√2 • U ⬝ (|1⟩ ⊗ |0^(n+1)⟩), {
+        iterate 2 { rw <- matrix.mul_smul },
+        iterate 2 { rw <- kron_smul_left },
+        rw <- matrix.mul_add,
+        congr' 1,
+        rw <- kron_dist_over_add_left,
+        congr' 1,
+        rw ket_plus_alt_def,
+    },
+
+    -- Step 2. Compute the state after cloning |0⟩ or |1⟩ with a 50% probability.
+    --         This should be identical to the Step #1 when combined.
+    have step2_1: /√2 • U ⬝ (|0⟩ ⊗ |0^(n+1)⟩) = /√2 • |0⟩ ⊗ (|0⟩ ⊗ f |0⟩), {
+        congr' 1, apply H, simp,
+    },
+    have step2_2: /√2 • U ⬝ (|1⟩ ⊗ |0^(n+1)⟩) = /√2 • |1⟩ ⊗ (|1⟩ ⊗ f |1⟩), {
+        congr' 1, apply H, simp,
+    },
+
+    -- Step 3. Equate the results of Step #1 and #2, which will be contradictory.
+    have step3: |+⟩ ⊗ (|+⟩ ⊗ f |+⟩) = (/√2 • |0⟩ ⊗ (|0⟩ ⊗ f |0⟩)) + (/√2 • |1⟩ ⊗ (|1⟩ ⊗ f |1⟩)), {
+        rw <- U_plus; try {solve1 {simp}},
+        rw step1,
+        rw <- step2_1,
+        rw <- step2_2,
+    },
+
+    -- Step 4. Reformulate the equation from Step #3, before making a partial measurement.
+    have step4: (|+⟩ ⊗ |+⟩) ⊗ f |+⟩ = (/√2 • (|0⟩ ⊗ |0⟩)) ⊗ f |0⟩ + (/√2 • (|1⟩ ⊗ |1⟩)) ⊗ f |1⟩, {
+        rw kron_assoc_l2r,
+        rw step3,
+        simp,
+        repeat { rw kron_assoc },
+        rw push_cast_matrix_add; try {ring},
+        iterate 2 { rw push_cast_matrix_smul; try {ring} },
+        iterate 2 { rw cast_roundtrip },
+    },
+    clear step1 step2_1 step2_2 step3 U_plus U_0 U_1,
+
+    -- Step 5. Derive facts about "f" based on the fact that
+    --         U is a unitary operatros.
+    have f_ket0_unit: (f |0⟩).unit, {
+        apply no_clone_3_unit H u; try {solve1 {simp *}},
+    },
+    have f_ket1_unit: (f |1⟩).unit, {
+        apply no_clone_3_unit H u; try {solve1 {simp *}},
+    },
+    have f_ket_plus_unit: (f |+⟩).unit, {
+        apply no_clone_3_unit H u; try {solve1 {simp *}},
+    },
+
+    -- Step 6. Find contradiction form the partial measurements of both sides.
+    have c1: ⟦(|+⟩ ⊗ |+⟩)⟧ 1 = ⟦(/√2 • (|0⟩ ⊗ |0⟩)) + (/√2 • (|1⟩ ⊗ |1⟩))⟧ 1, {
+        have p1: ⦃ (|+⟩ ⊗ |+⟩) ⊗ f |+⟩ ⦄ = ⟦(|+⟩ ⊗ |+⟩)⟧, {
+            apply partial_measure_proj_kron,
+            apply trace_proj_eq_one_of_unit; assumption,
+        },
+        have p2: ⦃ (/√2 • (|0⟩ ⊗ |0⟩)) ⊗ f |0⟩ + (/√2 • (|1⟩ ⊗ |1⟩)) ⊗ f |1⟩ ⦄
+                = ⟦ (/√2 • (|0⟩ ⊗ |0⟩)) + (/√2 • (|1⟩ ⊗ |1⟩)) ⟧, {
+            apply partial_measure_add_kron_of_orthogonal,
+            apply trace_proj_eq_one_of_unit; assumption,
+            apply trace_proj_eq_one_of_unit; assumption, {
+                apply no_clone_3_alt_helper1,
+            },
+        },
+        rw <- p1,
+        rw <- p2,
+        rw step4,
+    },
+    have c2: (1/4 : ℝ) = 0, {
+        rw <- no_clone_3_alt_helper2,
+        rw <- no_clone_3_alt_helper3,
+        apply c1,
+    },
+    norm_num at c2,
+end

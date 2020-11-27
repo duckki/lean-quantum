@@ -109,9 +109,14 @@ lemma complex.mul_conj_abs_square (c : ℂ) : (c†) * c = |c| ^ 2
     apply_mod_cast norm_sq_eq_abs,
 end
 
+lemma complex.abs_of_real' (x : ℝ) : |x| = |(x : ℂ)|
+:= begin
+    refl,
+end
+
 lemma complex.re_conj_eq_re (c : ℂ): (c†).re = c.re
 := begin
-    simp,
+    refl,
 end
 
 lemma complex.conj_sum_dist {n} (f : fin n → ℂ)

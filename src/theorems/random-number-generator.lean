@@ -26,10 +26,6 @@ example : ∀ i, ⟦H ⬝ |1⟩⟧ i = 1/2 := by solve_rng
 -- Proof automation lemmas
 -- These ground facts were needed to simplify `H2 ⬝ |00⟩` evaluations.
 
-@[simp] lemma fin_1_div_2 : (⟨1 / 2, by dec_trivial⟩ : fin 2) = ⟨0, by dec_trivial⟩ := by norm_num
-@[simp] lemma fin_3_div_2 : (⟨(3 : fin (3+1)) / 2, by dec_trivial⟩ : fin 2) = ⟨1, by dec_trivial⟩ := by norm_cast
-@[simp] lemma fin_3_mod_2 : (⟨(3 : fin (3+1)) % 2, by dec_trivial⟩ : fin 2) = ⟨1, by dec_trivial⟩ := by norm_cast
-
 @[simp] lemma fin_one_succ_succ_div_2 : (⟨(1 : ℕ).succ.succ / 2, by dec_trivial⟩ : fin 2) = ⟨1, by dec_trivial⟩ := by norm_num
 @[simp] lemma fin_one_succ_succ_mod_2 : (⟨(1 : ℕ).succ.succ % 2, by dec_trivial⟩ : fin 2) = ⟨1, by dec_trivial⟩ := by norm_num
 
