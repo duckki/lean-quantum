@@ -90,12 +90,12 @@ variables {m n p q : ℕ}
 -- kron_div: `i / p` : `fin m`
 @[reducible]
 def kron_div (i : fin (m*p)) : fin m :=
-⟨ (i : ℕ)/p, (nat.div_lt_iff_lt_mul i.val m (fin_mul_right_has_zero i)).mpr i.property⟩
+⟨ (i : ℕ)/p, (nat.div_lt_iff_lt_mul (i : ℕ) m (fin_mul_right_has_zero i)).mpr i.property⟩
 
 -- kron_mod: `i % p` : `fin p`
 @[reducible]
 def kron_mod (i : fin (m*p)) : fin p :=
-⟨ (i : ℕ)%p, nat.mod_lt i.val (fin_mul_right_has_zero i) ⟩
+⟨ (i : ℕ)%p, nat.mod_lt (i : ℕ) (fin_mul_right_has_zero i) ⟩
 
 -- Kronecker product
 def kron (A : Matrix m n) (B : Matrix p q) : Matrix (m*p) (n*q)

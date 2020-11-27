@@ -130,19 +130,13 @@ end nat_mod
 
 
 ------------------------------------------------------------------------------
--- fin cast simplication lemmas
-
-@[simp]
-lemma fin_val_coe_nat_eq_self (n : ℕ) : (n : fin n.succ).val = n
-:= begin
-    rw coe_val_of_lt; linarith,
-end
+-- fin coe simplication lemmas
 
 @[simp]
 lemma fin_coe_coe_nat_eq_self (n : ℕ) : ((n : fin n.succ) : ℕ) = n
 := begin
     rw coe_eq_val,
-    apply fin_val_coe_nat_eq_self,
+    rw coe_val_of_lt, simp,
 end
 
 
@@ -197,7 +191,7 @@ lemma coe_cast_fin_h {n n'} (h : n = n') (i : fin n)
 end
 
 lemma coe_cast_fin {n n'} (h : n = n') (i : fin n)
-    : (((cast (congr_arg fin h) (i : fin n)) : fin n') : ℕ) = i.val
+    : (((cast (congr_arg fin h) (i : fin n)) : fin n') : ℕ) = i
 := begin
     rw coe_cast_fin_h; simp,
 end
