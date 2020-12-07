@@ -268,7 +268,7 @@ theorem no_clone_3 {n}
                          ... = √2 : by {rw c2_1, simp,},
     },
     have c3: |(√2 : ℂ)| ≤ 1 → false, {
-        simp, rw abs_of_nonneg, {
+        simp, rw _root_.abs_of_nonneg, {
             contrapose!, intro h, clear h, simp,
         }, {
             simp,

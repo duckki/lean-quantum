@@ -1,7 +1,5 @@
 import quantum
-import common_lemmas
 import matrix_lemmas
-import matrix_inner_product
 
 open_locale big_operators
 open matrix
@@ -577,7 +575,7 @@ lemma partial_measure_proj_kron
     rw partial_trace_kron,
     rw vu, simp,
     rw proj_diagnonal_eq_norm_sq, simp,
-    rw abs_of_nonneg, simp,
+    rw _root_.abs_of_nonneg, simp,
 end
 
 lemma partial_measure_eq_of_kron_eq :
@@ -771,7 +769,7 @@ lemma partial_measure_add_kron_of_orthogonal : Tr(proj s) = 1 → Tr(proj t) = 1
     ext i,
     rw h, simp,
     unfold measure_std_basis,
-    apply abs_of_nonneg, simp,
+    apply _root_.abs_of_nonneg, simp,
 end
 
 end partial_measure_add_kron
@@ -996,7 +994,7 @@ end
 -- This could be read as `⟨0|+⟩` on books.
 @[simp] lemma inner_ket0_ket_plus :  ⟪ |0⟩, |+⟩ ⟫ = (/√2 : ℂ)
 := begin
-    unfold inner Matrix.inner_product,
+    unfold has_inner.inner Matrix.inner_product,
     unfold_qubits; grind_dot_product; finish_complex_arith,
 end
 

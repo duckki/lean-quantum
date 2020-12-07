@@ -1,23 +1,14 @@
 import matrix
+import matrix_inner_product
 import common_lemmas
 import linear_algebra.nonsingular_inverse
 
 open_locale big_operators
-open complex
 open matrix
 open Matrix
 
 ------------------------------------------------------------------------------
 -- ℝ lemmas
-
-lemma real.le_of_le_pow_two {a b : ℝ} : a^2 ≤ b^2 → 0 ≤ a → 0 ≤ b → a ≤ b
-:= begin
-    intros h an bn,
-    rw <- real.sqrt_mul_self an,
-    rw <- real.sqrt_mul_self bn,
-    iterate 2 { rw pow_two at h },
-    apply real.sqrt_le_sqrt; assumption,
-end
 
 lemma real.lt_of_lt_pow_two {a b : ℝ} : a^2 < b^2 → 0 ≤ a → 0 ≤ b → a < b
 := begin
@@ -106,7 +97,7 @@ end
 lemma complex.mul_conj_abs_square (c : ℂ) : (c†) * c = |c| ^ 2
 := begin
     simp,
-    apply_mod_cast norm_sq_eq_abs,
+    apply_mod_cast complex.norm_sq_eq_abs,
 end
 
 lemma complex.abs_of_real' (x : ℝ) : |x| = |(x : ℂ)|
@@ -1360,3 +1351,66 @@ example : U.unitary → (w†) ⬝ w = 1 → ((U ⬝ w)†) ⬝ (U ⬝ w) = 1
 end
 
 end unitary_and_vector
+
+
+------------------------------------------------------------------------------
+-- Matrix.inner_product & Matrix.norm
+
+namespace Matrix
+
+noncomputable
+def inner_product {n} (x y : Vector n) := (x† ⬝ y) 0 0
+
+noncomputable
+instance {n : ℕ} : has_inner ℂ (Vector n) := ⟨inner_product⟩
+
+noncomputable
+def norm {n} (x : Vector n) := real.sqrt (is_R_or_C.re (inner_product x x))
+
+noncomputable
+instance {n : ℕ} : has_norm (Vector n) := ⟨norm⟩
+
+end Matrix
+
+notation `⟪` X `,` Y `⟫` := @has_inner.inner ℂ _ _ X Y
+
+
+section inner_product_lemmas
+
+variables {n : ℕ}
+variables {x y z : Vector n}
+
+lemma norm_eq_one_of_unit : x.unit → ∥x∥ = 1
+:= begin
+    intros xu,
+    unfold has_norm.norm,
+    unfold Matrix.norm Matrix.inner_product,
+    rw unfold_unit xu, simp,
+end
+
+lemma inner_product_bound_of_unit : x.unit → y.unit → |⟪x,y⟫| ≤ 1
+:= begin
+    intros xu yu,
+    have f1: |⟪x,y⟫| ≤ ∥x∥ * ∥y∥, {
+        unfold has_inner.inner has_norm.norm,
+        apply matrix.cauchy_schwarz_inequality_alt,
+    },
+    rw norm_eq_one_of_unit xu at f1,
+    rw norm_eq_one_of_unit yu at f1,
+    calc |inner x y| ≤ 1 * 1 : f1
+                  ...= 1 : by simp,
+end
+
+lemma inner_product_zero_iff : x† ⬝ y = 0 ↔ ⟪x,y⟫ = 0
+:= begin
+    unfold inner Matrix.inner_product, split; intros h, {
+        rw h, simp,
+    }, {
+        apply matrix.ext, intros i j,
+        have i0 : i = 0, cases i; simp, cases i0; clear i0,
+        have j0 : j = 0, cases j; simp, cases j0; clear j0,
+        simp at *, assumption,
+    }
+end
+
+end inner_product_lemmas

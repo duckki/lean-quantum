@@ -6,7 +6,8 @@ import common_lemmas
 -- Convenience definition for complex numbers
 
 notation |x| := is_R_or_C.abs x
-notation x `†`:90 := @is_R_or_C.conj ℂ _ x
+notation x `†`:90 := @is_R_or_C.conj _ _ x
+
 
 ------------------------------------------------------------------------------
 -- Convenience definitions for complex matrix
