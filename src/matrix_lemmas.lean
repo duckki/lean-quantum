@@ -1353,7 +1353,7 @@ end unitary_and_vector
 
 
 ------------------------------------------------------------------------------
--- Matrix.inner_product & Matrix.norm
+-- Matrix.inner_product & Matrix.norm & Matrix.dist
 
 namespace Matrix
 
@@ -1369,10 +1369,162 @@ def norm {n} (x : Vector n) := real.sqrt (is_R_or_C.re (inner_product x x))
 noncomputable
 instance {n : ℕ} : has_norm (Vector n) := ⟨norm⟩
 
+/-- Distance between two vectors -/
+noncomputable
+def dist {n : ℕ} (x y : Vector n) := norm (x - y)
+
+noncomputable
+instance {n : ℕ} : has_dist (Vector n) := ⟨Matrix.dist⟩
+
 end Matrix
 
 notation `⟪` X `,` Y `⟫` := @has_inner.inner ℂ _ _ X Y
 
+
+------------------------------------------------------------------------------
+-- Matrix inner product operator is compatible with matrix.inner_product.
+-- So are norm and dist.
+
+section inner_product_compat
+
+variables {n : ℕ} (s t : Vector n)
+
+lemma Matrix_inner_eq_matrix_inner : ⟪s,t⟫ = ⟪ λ i, s i 0, λ i, t i 0 ⟫
+:= begin
+    unfold inner inner_product Matrix.inner_product matrix.mul, congr,
+end
+
+lemma Matrix_norm_eq_matrix_norm : ∥s∥ = ∥ (λ i, s i 0) ∥
+:= begin
+    unfold has_norm.norm Matrix.norm matrix.norm, congr,
+end
+
+lemma Matrix_dist_eq_matrix_dist : Matrix.dist s t = matrix.dist (λ i, s i 0) (λ i, t i 0)
+:= begin
+    unfold Matrix.dist matrix.dist,
+    unfold has_norm.norm Matrix.norm matrix.norm, congr,
+end
+
+end inner_product_compat
+
+
+------------------------------------------------------------------------------
+-- Vector normed_group
+
+section normed_group
+
+variables {m : ℕ}
+
+noncomputable
+instance : metric_space (Vector m) := {
+dist               := dist,
+dist_self          :=
+    begin
+        intros x, unfold has_dist.dist, rw Matrix_dist_eq_matrix_dist,
+        unfold matrix.dist, simp,
+    end,
+eq_of_dist_eq_zero :=
+    begin
+        intros x y, unfold has_dist.dist, rw Matrix_dist_eq_matrix_dist,
+        intros h,
+        have : (λ (i : fin m), x i 0) = (λ (i : fin m), y i 0),
+        { apply matrix.eq_of_dist_eq_zero h, },
+        apply matrix.ext, intros i j,
+        have j0: j = 0, { simp, },
+        cases j0, clear j0, simp,
+        change (λ (i : fin m), x i 0) i = (λ (i : fin m), y i 0) i,
+        cc,
+    end,
+dist_comm          :=
+    begin
+        intros x y, unfold has_dist.dist, iterate 2 { rw Matrix_dist_eq_matrix_dist },
+        apply matrix.dist_comm,
+    end,
+dist_triangle      :=
+    begin
+        intros x y z, unfold has_dist.dist, iterate 2 { rw Matrix_dist_eq_matrix_dist },
+        apply matrix.dist_triangle,
+    end,
+}
+
+lemma Matrix.dist_eq (x y : Vector m) : dist x y = ∥x - y∥ := by refl
+
+noncomputable
+instance : normed_group (Vector m) := ⟨ Matrix.dist_eq ⟩
+
+end normed_group
+
+
+------------------------------------------------------------------------------
+-- Vector inner_product_space
+
+section inner_product_space
+
+variables {m : ℕ}
+
+lemma Matrix_smul_apply (a : ℂ) (s : Vector m)
+        : (λ i, (a • s) i 0) = a • (λ i, s i 0)
+:= begin
+    apply funext, intros i,
+    apply smul_apply,
+end
+
+noncomputable
+instance : normed_space ℂ (Vector m) := {
+norm_smul_le :=
+    begin
+        intros,
+        iterate 2 { rw Matrix_norm_eq_matrix_norm },
+        rw Matrix_smul_apply,
+        unfold has_norm.norm,
+        rw matrix.norm_smul,
+        simp,
+    end
+}
+
+noncomputable
+instance : inner_product_space ℂ (Vector m) := {
+norm_sq_eq_inner :=
+    begin
+        intros x,
+        rw Matrix_inner_eq_matrix_inner,
+        rw Matrix_norm_eq_matrix_norm,
+        apply has_norm_sq_eq_re_inner_product_self,
+    end,
+conj_sym :=
+    begin
+        intros x y,
+        iterate 2 { rw Matrix_inner_eq_matrix_inner, },
+        unfold inner,
+        rw <- conj_inner_product, simp,
+    end,
+nonneg_im :=
+    begin
+        intros x,
+        rw Matrix_inner_eq_matrix_inner,
+        unfold inner, simp,
+    end,
+add_left :=
+    begin
+        intros x y z,
+        iterate 3 { rw Matrix_inner_eq_matrix_inner, },
+        unfold inner,
+        apply inner_product_add_left,
+    end,
+smul_left :=
+    begin
+        intros x y r,
+        iterate 2 { rw Matrix_inner_eq_matrix_inner, },
+        unfold inner,
+        apply inner_product_smul_l,
+    end,
+}
+
+end inner_product_space
+
+
+------------------------------------------------------------------------------
+-- Matrix inner product lemmas
 
 section inner_product_lemmas
 
@@ -1410,6 +1562,34 @@ lemma inner_product_zero_iff : x† ⬝ y = 0 ↔ ⟪x,y⟫ = 0
         have j0 : j = 0, cases j; simp, cases j0; clear j0,
         simp at *, assumption,
     }
+end
+
+lemma Matrix_inner_self_eq_norm_sq : ⟪x,x⟫.re = ∥x∥^2
+:= begin
+    rw Matrix_inner_eq_matrix_inner,
+    rw Matrix_norm_eq_matrix_norm,
+    unfold inner,
+    rw has_norm_sq_eq_re_inner_product_self; simp,
+end
+
+lemma Matrix_inner_self_im_zero : ⟪x,x⟫.im = 0
+:= begin
+    rw Matrix_inner_eq_matrix_inner,
+    unfold inner,
+    rw <- is_R_or_C.im_to_complex,
+    apply inner_product_self_im_zero,
+end
+
+lemma complex.re_eq_self_of_im_zero (x : ℂ) : x.im = 0 → (x.re : ℂ) = x
+:= begin
+    cases x, simp, intros h,
+    rw h, split,
+end
+
+lemma Matrix_inner_self_real : (⟪x,x⟫.re : ℂ) = ⟪x,x⟫
+:= begin
+    apply complex.re_eq_self_of_im_zero,
+    apply Matrix_inner_self_im_zero,
 end
 
 end inner_product_lemmas
