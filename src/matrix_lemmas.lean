@@ -16,8 +16,7 @@ lemma real.lt_of_lt_pow_two {a b : ℝ} : a^2 < b^2 → 0 ≤ a → 0 ≤ b → 
     rw <- real.sqrt_mul_self an,
     rw <- real.sqrt_mul_self bn,
     iterate 2 { rw pow_two at h },
-    apply (real.sqrt_lt _ _).mpr, assumption,
-    rw <- pow_two; apply pow_two_nonneg,
+    apply (real.sqrt_lt _).mpr, assumption,
     rw <- pow_two; apply pow_two_nonneg,
 end
 
