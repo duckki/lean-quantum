@@ -518,8 +518,10 @@ lemma std_basis_eq_one {n : m} : ∀ {j i}, j = n → std_basis n j i = 1
     simp,
 end
 
+variables {n : ℕ} {i j : fin n}
+
 @[simp]
-theorem std_basis_unit {n} {i : fin n} : (std_basis i).unit
+theorem std_basis_unit : (std_basis i).unit
 := begin
     apply mul_adjoint_one_if_sum_square_one,
     rw finset.sum_eq_single i, {
@@ -535,11 +537,11 @@ theorem std_basis_unit {n} {i : fin n} : (std_basis i).unit
 end
 
 @[simp]
-lemma std_basis_adjoint_apply {n} {s : fin n} : ∀ {i j}, ((std_basis s)†) i j = (std_basis s) j i
+lemma std_basis_adjoint_apply {s : fin n} : ∀ x, ((std_basis s)†) x i = (std_basis s) i x
 := begin
     unfold Matrix.adjoint,
-    intros i j,
-    by_cases c : j = s, {
+    intros x,
+    by_cases c : i = s, {
         rw std_basis_eq_one c, simp,
     }, {
         rw std_basis_eq_zero c, simp,
@@ -547,12 +549,12 @@ lemma std_basis_adjoint_apply {n} {s : fin n} : ∀ {i j}, ((std_basis s)†) i 
 end
 
 @[simp]
-lemma std_basis_inner_product {n} (i : fin n) : ((std_basis i)†) ⬝ (std_basis i) = 1
+lemma std_basis_inner_product : ((std_basis i)†) ⬝ (std_basis i) = 1
 := begin
     apply std_basis_unit,
 end
 
-lemma std_basis_inner_product_eq_zero {n} (i j : fin n) : ¬ i = j → ((std_basis i)†) ⬝ (std_basis j) = 0
+lemma std_basis_inner_product_eq_zero : ¬ i = j → ((std_basis i)†) ⬝ (std_basis j) = 0
 := begin
     intros h,
 
@@ -567,6 +569,24 @@ lemma std_basis_inner_product_eq_zero {n} (i j : fin n) : ¬ i = j → ((std_bas
     intros b h',
     left,
     rw std_basis_eq_zero h',
+end
+
+@[simp]
+lemma inner_product_std_basis_cancel_left {s : Vector n}
+        : ((std_basis i)† ⬝ s) 0 0 = s i 0
+:= begin
+    unfold matrix.mul adjoint std_basis,
+    unfold matrix.dot_product,
+    rw finset.sum_eq_single i; simp; cc,
+end
+
+@[simp]
+lemma adjoint_inner_product_std_basis_cancel_left {s : Vector n}
+        : ((std_basis i)† ⬝ s)† 0 0 = (s i 0)†
+:= begin
+    unfold matrix.mul adjoint std_basis,
+    unfold matrix.dot_product,
+    rw finset.sum_eq_single i; simp; cc,
 end
 
 end std_basis
@@ -1590,6 +1610,33 @@ lemma Matrix_inner_self_real : (⟪x,x⟫.re : ℂ) = ⟪x,x⟫
 := begin
     apply complex.re_eq_self_of_im_zero,
     apply Matrix_inner_self_im_zero,
+end
+
+lemma norm_eq_one_iff_unit {n : ℕ} {x : Vector n} : x.unit ↔ ∥x∥ = 1
+:= begin
+    split; intros h,
+    { apply norm_eq_one_of_unit, assumption, },
+    {
+        unfold matrix.unit,
+        apply matrix.ext, intros i j,
+        have : i = 0, by simp, cases this, clear this,
+        have : j = 0, by simp, cases this, clear this,
+        change ⟪x, x⟫ = 1,
+
+        have h2: ∥x∥^2 = 1,
+        { rw h, simp, },
+        rw <- Matrix_inner_self_real,
+        rw Matrix_inner_self_eq_norm_sq,
+        apply_mod_cast h2,
+    }
+end
+
+lemma norm_smul_norm_inv_eq_one {n : ℕ} {s : Vector n} : ∥s∥ ≠ 0 → ∥(∥s∥⁻¹ • s)∥ = 1
+:= begin
+    intros h,
+    rw _root_.norm_smul, simp,
+    ring,
+    apply mul_inv_cancel h,
 end
 
 end inner_product_lemmas

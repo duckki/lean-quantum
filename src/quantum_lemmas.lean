@@ -73,6 +73,15 @@ lemma proj_self_adjoint (s : Vector n) : ((proj s)†) = proj s
     rw adjoint_mul, simp,
 end
 
+lemma proj_mul_adjoint_eq_self {n} {u : Vector n} : u.unit → (proj u)† ⬝ (proj u) = proj u
+:= begin
+    unfold proj, intros h,
+    rw adjoint_mul, simp,
+    rw matrix.mul_assoc, congr' 1,
+    rw <- matrix.mul_assoc,
+    rw unfold_unit h, simp,
+end
+
 lemma outer_product_diagnonal_apply {i : fin n}
         : (s ⬝ t†) i i = (s i 0) * (t i 0).conj
 := begin

@@ -7,26 +7,30 @@ It's built on top of the "mathlib" library written by the Lean Community.
 
 ## Organization
 
-### The `src` directory
+### The [src](src) directory
 
-* `common_lemmas.lean`: Contains lemmas that are not specific to complex matrix or quantum computing.
+* [common_lemmas.lean](src/common_lemmas.lean): Contains lemmas that are not specific to complex matrix or quantum computing.
 
-* `matrix.lean`: Matrix-related definitions, notably `Matrix` and `kron` (the Kronecker product).
+* [matrix_inner_product.lean](src/matrix_inner_product.lean): The `inner_product_space` instantiation for the `matrix` type.
+
+* [matrix.lean](src/matrix.lean): Matrix-related definitions, notably `Matrix` and `kron` (the Kronecker product).
 
   * The `Matrix` type is defined based on the mathlib's `matrix` type, but specialized for complex number and the `fin` range type.
 
-* `matrix_lemmas.lean`: Derived facts from the definitions in the `matrix.lean` file.
+* [matrix_lemmas.lean](src/matrix_lemmas.lean): Derived facts from the definitions of `Matrix`, `kron` and `adjoint`.
 
-* `matrix_inner_product.lean`: The `inner_product_space` instantiation for the `Matrix` type.
+* [quantum.lean](src/quantum.lean): Definitions for quantum computing, such as measurements and basic states and circuits.
 
-* `quantum.lean`: Definitions for quantum computing, such as measurements and basic states and circuits.
+* [quantum_lemmas.lean](src/quantum_lemmas.lean): Derived facts from the definitions in the [quantum.lean](src/quantum.lean) file.
 
-* `quantum_lemmas.lean`: Derived facts from the definitions in the `quantum.lean` file.
+* [measurement.lean](src/measurement.lean): More generalized definitions of measurements and theorems about them.
 
 
-### The `src/theorems` directory
+### The [src/theorems](src/theorems) directory
 
-* `no-clone.lean`: Several different versions of the "No-clone" theorem.
+* [no-clone.lean](theorems/no-clone.lean): Several different versions of the "No-clone" theorem.
+
+* [random-number-generator.lean](random-number-generator.lean): A few examples of Hadamard gates.
 
 
 ## Reference materials
