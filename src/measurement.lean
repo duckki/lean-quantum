@@ -1,5 +1,6 @@
 import quantum_lemmas
 open Matrix
+open quantum
 open_locale big_operators
 
 ------------------------------------------------------------------------------
@@ -233,7 +234,7 @@ end projective_measurement_lemmas
 
 
 ------------------------------------------------------------------------------
--- Projective measurement in the standard basis
+-- Standard basis measurement as a projective measurement
 
 section projective_measurement_in_std_basis
 
@@ -265,7 +266,7 @@ end projective_measurement_in_std_basis
 
 
 ------------------------------------------------------------------------------
--- simulating projective_measurement with measure
+-- Simulating projective measurement by measurement in the standard basis
 
 section proj_measure_to_measure
 
@@ -300,6 +301,52 @@ lemma proj_measure_to_measure : proj_unit u
         intros i ip ie,
         rw std_basis_adjoint_apply,
         rw std_basis_eq_zero ie, simp,
+    },
+end
+
+/-- The unitary operator that restores the state after projective measurement,
+after simulating it with `proj_measure_op`. -/
+noncomputable
+def proj_measure_restore_op (u : fin n → Vector n) (m : fin n) := u m ⬝ (std_basis m)†
+
+lemma state_after_proj_measure_to_measure
+        : proj_unit u
+        → state_after_proj_measure u s m
+            = proj_measure_restore_op u m ⬝ state_after_measure (proj_measure_op u ⬝ s) m
+:= begin
+    intros up,
+    unfold state_after_proj_measure state_after_measure,
+    rw proj_measure_to_measure up,
+    -- need this since `matrix.mul_smul` is expecting ℂ smul, not ℝ smul.
+    have : ∀ (s : Square n) (t : Vector n) (a : ℝ), s ⬝ (a • t) = a • (s ⬝ t),
+    { intros s t a, apply matrix.mul_smul },
+    rw this, clear this,
+    congr' 1,
+    unfold proj_measure_op proj_measure_restore_op,
+    rw <- matrix.mul_assoc,
+    unfold proj,
+    have : u m ⬝ std_basis m† ⬝ (std_basis m ⬝ std_basis m†)
+         = u m ⬝ std_basis m†,
+    {
+        rw matrix.mul_assoc,
+        rw <- matrix.mul_assoc ((std_basis m)†),
+        simp,
+    },
+    rw this, clear this,
+    rw matrix.mul_assoc,
+    rw matrix.mul_assoc,
+    congr' 1,
+    rw <- matrix.mul_assoc,
+    congr' 1,
+    apply matrix.ext, intros i j,
+    have : i = 0, by simp, cases this, clear this, simp,
+    rw matrix.mul_apply,
+    rw finset.sum_eq_single m; try { solve1 {simp} },
+    {
+        intros k k_in k_neq,
+        simp,
+        rw std_basis_eq_zero k_neq,
+        left, refl,
     },
 end
 

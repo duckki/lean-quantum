@@ -36,6 +36,7 @@ end Matrix
 -- Measurement
 
 namespace quantum
+open Matrix
 
 variables {n m : ℕ} (s : Vector n)
 
@@ -43,6 +44,11 @@ variables {n m : ℕ} (s : Vector n)
 def measure (m : fin n) : ℝ := complex.norm_sq (s m 0)
 
 notation `⟦` x `⟧` := measure x
+
+/-- state after measurement (using `measure`) -/
+noncomputable
+def state_after_measure (m : fin n)
+    := (1 / real.sqrt (⟦s⟧ m)) • proj (std_basis m) ⬝ s
 
 /-- Partial measurement in the standard basis -/
 noncomputable
