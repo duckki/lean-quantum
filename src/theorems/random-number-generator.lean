@@ -7,7 +7,7 @@ open Matrix
 
 meta def solve_rng :=
     `[  intros,
-        unfold measure_std_basis,
+        unfold quantum.measure,
         unfold_qubits,
         simp,
         try { unfold H },
@@ -39,7 +39,7 @@ def H2 : Square 4 := H ⊗ H
 
 meta def solve_rng2 :=
     `[  intros,
-        unfold measure_std_basis,
+        unfold quantum.measure,
         unfold_qubits,
         simp,
         try { unfold H2 },

@@ -4,22 +4,23 @@ import matrix_lemmas
 open_locale big_operators
 open matrix
 open Matrix
+open quantum
 
 ------------------------------------------------------------------------------
 section measurement
 
 variables {n : ℕ} {s : Vector n}
 
-lemma measure_std_basis_eq_mul_conj {m : fin n}
-        : (measure_std_basis s m : ℂ) = ((s m 0)†) * (s m 0)
+lemma measure_eq_mul_conj {m : fin n}
+        : (measure s m : ℂ) = ((s m 0)†) * (s m 0)
 := begin
-    unfold measure_std_basis,
+    unfold quantum.measure,
     rw <- complex.mul_conj, ring,
 end
 
-lemma measure_std_basis_eq_proj {m : fin n} : (measure_std_basis s m : ℂ) = proj s m m
+lemma measure_eq_proj {m : fin n} : (measure s m : ℂ) = proj s m m
 := begin
-    unfold measure_std_basis proj,
+    unfold quantum.measure proj,
     unfold matrix.mul matrix.dot_product,
     unfold adjoint,
     rw finset.sum_fin_eq_sum_range,
@@ -27,22 +28,22 @@ lemma measure_std_basis_eq_proj {m : fin n} : (measure_std_basis s m : ℂ) = pr
     repeat { rw dif_pos }; simp,
 end
 
-lemma measure_std_basis_eq_of_proj_eq {a b : Vector n} :
+lemma measure_eq_of_proj_eq {a b : Vector n} :
                    proj a = proj b
-    → measure_std_basis a = measure_std_basis b
+    → measure a = measure b
 := begin
     intros h,
     rw <- matrix.ext_iff at h,
     apply funext, intros i,
-    have g: (a.measure_std_basis i : ℂ) = b.measure_std_basis i, {
-        iterate 2 {rw measure_std_basis_eq_proj},
+    have g: (measure a i : ℂ) = measure b i, {
+        iterate 2 {rw measure_eq_proj},
         apply h,
     },
     apply_mod_cast g,
 end
 
-lemma nonzero_vector_has_nonzero_measure_std_basis
-        : s ≠ 0 → (∃ i, measure_std_basis s i ≠ 0)
+lemma nonzero_vector_has_nonzero_measure
+        : s ≠ 0 → (∃ i, measure s i ≠ 0)
 := begin
     contrapose!,
     intros h,
@@ -561,10 +562,10 @@ variables {m : ℕ} {s t : Vector m}
 lemma measure_eq_of_kron_eq :
         a ⊗ s = b ⊗ t
         → Tr(proj s) = 1 → Tr(proj t) = 1
-        → measure_std_basis a = measure_std_basis b
+        → measure a = measure b
 := begin
     intros h su tu,
-    apply measure_std_basis_eq_of_proj_eq,
+    apply measure_eq_of_proj_eq,
     apply partial_proj_eq_of_kron_eq h; assumption,
 end
 
@@ -575,11 +576,11 @@ end
 
 lemma partial_measure_proj_kron
         : Tr(proj s) = 1
-        → partial_measure_std_basis (a ⊗ s) = measure_std_basis a
+        → partial_measure (a ⊗ s) = measure a
 := begin
     intros vu,
     apply funext, intros i,
-    unfold partial_measure_std_basis measure_std_basis,
+    unfold partial_measure quantum.measure,
     rw proj_kron,
     rw partial_trace_kron,
     rw vu, simp,
@@ -590,10 +591,10 @@ end
 lemma partial_measure_eq_of_kron_eq :
         a ⊗ s = b ⊗ t
         → Tr(proj s) = 1 → Tr(proj t) = 1
-        → measure_std_basis a = measure_std_basis b
+        → measure a = measure b
 := begin
     intros h stu vwu,
-    have f1: partial_measure_std_basis (a ⊗ s) = partial_measure_std_basis (b ⊗ t), {
+    have f1: partial_measure (a ⊗ s) = partial_measure (b ⊗ t), {
         rw h,
     },
     rw partial_measure_proj_kron stu at f1,
@@ -601,51 +602,51 @@ lemma partial_measure_eq_of_kron_eq :
     assumption,
 end
 
-lemma unit_has_nonzero_measure_std_basis
-        : s.unit → (∃ i, measure_std_basis s i ≠ 0)
+lemma unit_has_nonzero_measure
+        : s.unit → (∃ i, measure s i ≠ 0)
 := begin
     intros h,
-    apply nonzero_vector_has_nonzero_measure_std_basis,
+    apply nonzero_vector_has_nonzero_measure,
     apply unit_nonzero, assumption,
 end
 
-lemma measure_std_basis_kron_apply {i : fin n} {j : fin m}
-    : measure_std_basis (a ⊗ s) (kron_loc i j)
-      = measure_std_basis a i * measure_std_basis s j
+lemma measure_kron_apply {i : fin n} {j : fin m}
+    : measure (a ⊗ s) (kron_loc i j)
+      = measure a i * measure s j
 := begin
-    have goal: (measure_std_basis (a ⊗ s) (kron_loc i j) : ℂ)
-                = measure_std_basis a i * measure_std_basis s j, {
-          repeat { rw measure_std_basis_eq_proj },
+    have goal: (measure (a ⊗ s) (kron_loc i j) : ℂ)
+                = measure a i * measure s j, {
+          repeat { rw measure_eq_proj },
           apply proj_kron_apply,
     },
     apply_mod_cast goal,
 end
 
-lemma measure_std_basis_kron_cancel_right:
-            measure_std_basis (a ⊗ s) = measure_std_basis (b ⊗ s)
+lemma measure_kron_cancel_right:
+            measure (a ⊗ s) = measure (b ⊗ s)
             → s.unit
-            → measure_std_basis a = measure_std_basis b
+            → measure a = measure b
 := begin
     intros h su,
     apply funext, intro i,
     rw function.funext_iff at h,
-    rcases (unit_has_nonzero_measure_std_basis su) with ⟨j, jp⟩,
+    rcases (unit_has_nonzero_measure su) with ⟨j, jp⟩,
     specialize (h (kron_loc i j)),
-    iterate 2 {rw measure_std_basis_kron_apply at h},
+    iterate 2 {rw measure_kron_apply at h},
     apply mul_right_cancel' _ h; assumption,
 end
 
-lemma measure_std_basis_kron_cancel_left:
-            measure_std_basis (s ⊗ a) = measure_std_basis (s ⊗ b)
+lemma measure_kron_cancel_left:
+            measure (s ⊗ a) = measure (s ⊗ b)
             → s.unit
-            → measure_std_basis a = measure_std_basis b
+            → measure a = measure b
 := begin
     intros h su,
     apply funext, intro i,
     rw function.funext_iff at h,
-    rcases (unit_has_nonzero_measure_std_basis su) with ⟨j, jp⟩,
+    rcases (unit_has_nonzero_measure su) with ⟨j, jp⟩,
     specialize (h (kron_loc j i)),
-    iterate 2 {rw measure_std_basis_kron_apply at h},
+    iterate 2 {rw measure_kron_apply at h},
     apply mul_left_cancel' _ h; assumption,
 end
 
@@ -706,7 +707,7 @@ lemma partial_measure_add_kron : Tr(proj s) = 1 → Tr(proj t) = 1
     have lhs: ⦃a ⊗ s + b ⊗ t⦄ i
                 = |((a ⬝ a†) i i + (b ⬝ b†) i i) + (Tr(s ⬝ t†) • ((a ⬝ b†) i i) + Tr(t ⬝ s†) • ((b ⬝ a†) i i))|,
     {
-        unfold partial_measure_std_basis,
+        unfold partial_measure,
         rw proj_add_kron,
         repeat { rw partial_trace_add },
         repeat { rw partial_trace_kron },
@@ -777,7 +778,7 @@ lemma partial_measure_add_kron_of_orthogonal : Tr(proj s) = 1 → Tr(proj t) = 1
     rw partial_measure_add_kron' su tu,
     ext i,
     rw h, simp,
-    unfold measure_std_basis,
+    unfold quantum.measure,
     apply _root_.abs_of_nonneg, simp,
 end
 

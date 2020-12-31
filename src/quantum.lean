@@ -4,48 +4,53 @@ open_locale big_operators
 open Matrix
 
 ------------------------------------------------------------------------------
--- Measurement
+-- Matrix helpers for measurement definitions
 
 namespace Matrix
 
-variables {n : ℕ} (s : Vector n)
+variables {n m : ℕ} (s : Vector n)
 
--- Measurement in the standard basis
-def measure_std_basis (m : fin n) : ℝ := complex.norm_sq (s m 0)
-
-notation `⟦` x `⟧` := measure_std_basis x
-
--- "projection" and "trace" for paritial measure
-
--- the projection operator onto the state `s` (aka "observable")
--- `proj s` can be read as `|ψ⟩⟨ψ|`, when `|ψ⟩ = s`.
+/-- Projection operator onto the state `s` (aka "observable").
+`proj s` can be read as `|ψ⟩⟨ψ|`, when `|ψ⟩ = s`. -/
 noncomputable
 def proj : Square n := s ⬝ (s†)
 
+/-- Trace of square matrix -/
 noncomputable
 def trace (A : Square n) : ℂ := ∑ i, A i i
 
 notation `Tr(` x `)` := trace x
 
-
--- partial trace and partial measure
-
-variables {m : ℕ}
-
--- `n × n` partial traces of `m × m` subcomponents of
--- `(n * m) × (n * m)` square matrix.
+/-- `n × n` partial traces of `m × m` subcomponents of
+`(n * m) × (n * m)` square matrix. -/
 noncomputable
 def partial_trace (M : Square (n * m)) : Square n
 := λ i j, ∑ k, M (kron_loc i k) (kron_loc j k)
 
 notation `Tr'(` x `)` := partial_trace x
 
-noncomputable
-def partial_measure_std_basis (v : Vector (n * m)) (i : fin n) : ℝ := |v.proj.partial_trace i i|
-
-notation `⦃` x `⦄` := partial_measure_std_basis x
-
 end Matrix
+
+
+------------------------------------------------------------------------------
+-- Measurement
+
+namespace quantum
+
+variables {n m : ℕ} (s : Vector n)
+
+/-- Measurement in the standard basis -/
+def measure (m : fin n) : ℝ := complex.norm_sq (s m 0)
+
+notation `⟦` x `⟧` := measure x
+
+/-- Partial measurement in the standard basis -/
+noncomputable
+def partial_measure (v : Vector (n * m)) (i : fin n) : ℝ := |v.proj.partial_trace i i|
+
+notation `⦃` x `⦄` := partial_measure x
+
+end quantum
 
 
 ------------------------------------------------------------------------------

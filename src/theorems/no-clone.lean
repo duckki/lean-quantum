@@ -292,7 +292,7 @@ end
 
 lemma no_clone_3_alt_helper2 : ⟦(|+⟩ ⊗ |+⟩)⟧ 1 = 1/4
 := begin
-    unfold measure_std_basis,
+    unfold quantum.measure,
     unfold_qubits,
     unfold kron kron_div kron_mod,
     repeat { destruct_fin }; simp; ring,
@@ -300,7 +300,7 @@ end
 
 lemma no_clone_3_alt_helper3 : ⟦(/√2 • (|0⟩ ⊗ |0⟩)) + (/√2 • (|1⟩ ⊗ |1⟩))⟧ 1 = 0
 := begin
-    unfold measure_std_basis,
+    unfold quantum.measure,
     unfold_qubits,
     unfold kron kron_div kron_mod,
     repeat { destruct_fin }; simp,

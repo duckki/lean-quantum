@@ -237,7 +237,7 @@ end projective_measurement_lemmas
 
 section projective_measurement_in_std_basis
 
-variables {n : ℕ} {s : Vector n} {m : fin n}
+variables {n : ℕ} {s : Vector n}
 
 @[simp]
 lemma proj_unit_std_basis : @proj_unit n std_basis
@@ -245,10 +245,11 @@ lemma proj_unit_std_basis : @proj_unit n std_basis
     unfold proj_unit, intros i, simp,
 end
 
-lemma proj_measure_std_basis_eq_measure_std_basis
-        : proj_measure std_basis s m = measure_std_basis s m
+lemma proj_measure_eq_measure
+        : proj_measure std_basis s = ⟦s⟧
 := begin
-    unfold measure_std_basis,
+    ext m,
+    unfold quantum.measure,
     rw proj_measure_eq_norm_sq_inner,
     {
         rw <- Matrix_inner_self_eq_norm_sq,
@@ -264,9 +265,9 @@ end projective_measurement_in_std_basis
 
 
 ------------------------------------------------------------------------------
--- simulating projective_measurement with measure_std_basis
+-- simulating projective_measurement with measure
 
-section proj_measure_to_measure_std_basis
+section proj_measure_to_measure
 
 variables {n : ℕ} {s : Vector n}
 variables {u : fin n → Vector n} -- a set of basis to project
@@ -277,11 +278,12 @@ the standard basis measuremnt. -/
 noncomputable
 def proj_measure_op (u : fin n → Vector n) : Square n := λ i, (u i)† 0
 
-lemma proj_measure_to_measure_std_basis : proj_unit u
-        → proj_measure u s m = measure_std_basis (proj_measure_op u ⬝ s) m
+lemma proj_measure_to_measure : proj_unit u
+        → proj_measure u s = ⟦proj_measure_op u ⬝ s⟧
 := begin
     intros h,
-    rw <- proj_measure_std_basis_eq_measure_std_basis,
+    ext m,
+    rw <- proj_measure_eq_measure,
     rw proj_measure_eq_norm_sq_inner h,
     rw proj_measure_eq_norm_sq_inner proj_unit_std_basis,
     congr' 2,
@@ -301,4 +303,4 @@ lemma proj_measure_to_measure_std_basis : proj_unit u
     },
 end
 
-end proj_measure_to_measure_std_basis
+end proj_measure_to_measure
