@@ -156,6 +156,74 @@ end proj_kron
 
 
 ------------------------------------------------------------------------------
+-- proj + std_basis lemmas
+
+section proj_std_basis
+
+variables {n : ℕ} {m : fin n}
+
+lemma proj_std_basis_eq_diagonal
+        : proj (std_basis m) = matrix.diagonal (λ i, if i = m then 1 else 0)
+:= begin
+    unfold proj matrix.mul,
+    unfold Matrix.adjoint,
+    apply matrix.ext, intros i j,
+    simp,
+    unfold matrix.dot_product,
+    simp,
+    by_cases h: i = j, {
+        cases h,
+        simp,
+        by_cases h2: i = m, {
+            cases h2,
+            simp,
+        }, {
+            rw if_neg; try {assumption},
+            rw std_basis_eq_zero h2,
+            simp,
+        }
+    }, {
+        unfold matrix.diagonal,
+        rw if_neg h,
+        by_cases h2: i = m, {
+            have f1: ¬ j = m, by cc,
+            rw std_basis_eq_zero f1, simp,
+        }, {
+            have f1: ¬ i = m, by cc,
+            rw std_basis_eq_zero f1, simp,
+        }
+    }
+end
+
+@[simp]
+lemma proj_std_basis_eq_one : proj (std_basis m) m m = 1
+:= begin
+    rw proj_std_basis_eq_diagonal,
+    unfold matrix.diagonal, simp,
+end
+
+lemma proj_std_basis_eq_zero1 {i j : fin n} : ¬ i = m → proj (std_basis m) i j = 0
+:= begin
+    rw proj_std_basis_eq_diagonal,
+    unfold matrix.diagonal, intros e,
+    rw if_neg e, simp,
+end
+
+lemma proj_std_basis_eq_zero2 {i j : fin n} : ¬ j = m → proj (std_basis m) i j = 0
+:= begin
+    rw proj_std_basis_eq_diagonal,
+    unfold matrix.diagonal, intros e,
+    by_cases h : i = j, {
+        cases h, simp, cc,
+    }, {
+        rw if_neg h,
+    }
+end
+
+end proj_std_basis
+
+
+------------------------------------------------------------------------------
 -- trace lemmas
 
 section trace
@@ -549,6 +617,93 @@ lemma partial_trace_proj_add_kron2 : w.unit → q.unit → (w†) ⬝ q = 0
 end
 
 end partial_trace_proj_add_kron
+
+
+------------------------------------------------------------------------------
+-- state_after_measure lemmas
+
+section state_after_measure_lemmas
+
+variables {n : ℕ} {s : Vector n} {m : fin n}
+
+lemma state_after_measure_eq_zero {i : fin n}
+        : ¬ i = m → (state_after_measure s m) i 0 = 0
+:= begin
+    unfold quantum.measure state_after_measure,
+    intros h,
+    rw Matrix.real_smul_apply,
+    rw matrix.mul_apply,
+    rw finset.sum_eq_zero; try {solve1 {simp}},
+    intros x xh,
+    rw proj_std_basis_eq_zero1; simp [*],
+end
+
+lemma abs_state_after_measure_eq_one {i : fin n}
+        : ⟦s⟧ m ≠ 0 → i = m → |state_after_measure s m i 0| = 1
+:= begin
+    intros sp h, cases h, clear h,
+    unfold quantum.measure state_after_measure,
+    rw Matrix.real_smul_apply,
+    rw matrix.mul_apply,
+    rw finset.sum_eq_single m, {
+        simp, ring,
+        rw <- is_R_or_C.norm_sq_to_complex,
+        rw is_R_or_C.sqrt_norm_sq_eq_norm,
+        simp,
+        rw mul_inv_cancel, {
+            intro c,
+            apply sp, clear sp,
+            unfold quantum.measure,
+            rw complex.norm_sq_eq_abs,
+            rw c, simp,
+        }
+    }, {
+        intros x xp xh,
+        rw proj_std_basis_eq_zero2; simp [*],
+    }, {
+        simp,
+    }
+end
+
+lemma measure_state_after_measure_eq_one {i : fin n}
+        : ⟦s⟧ m ≠ 0 → i = m → measure (state_after_measure s m) i = 1
+:= begin
+    intros sp h, cases h, clear h,
+    unfold quantum.measure state_after_measure,
+    rw Matrix.real_smul_apply,
+    rw matrix.mul_apply,
+    rw finset.sum_eq_single m, {
+        simp, ring,
+        rw mul_inv_cancel, {
+            intro c,
+            apply sp, clear sp,
+            apply c,
+        }
+    }, {
+        intros x xp xh,
+        rw proj_std_basis_eq_zero2; simp [*],
+    }, {
+        simp,
+    }
+end
+
+lemma measure_state_after_measure_eq_measure_std_basis
+        : ⟦s⟧ m ≠ 0 → measure (state_after_measure s m) = measure (std_basis m)
+:= begin
+    intros h,
+    ext1 i,
+    by_cases c: i = m, {
+        cases c, clear c,
+        rw measure_state_after_measure_eq_one h rfl,
+        unfold quantum.measure, simp,
+    }, {
+        unfold quantum.measure,
+        rw state_after_measure_eq_zero c,
+        rw std_basis_eq_zero c,
+    },
+end
+
+end state_after_measure_lemmas
 
 
 ------------------------------------------------------------------------------

@@ -187,8 +187,8 @@ end matrix_cast_apply
 
 section matrix
 
-variables {m n : ℕ}
-variables {A : Matrix m n}
+variables {m n o : ℕ}
+variables {A : Matrix m n} {B : Matrix n o}
 variables {s : Vector n}
 
 @[simp]
@@ -280,6 +280,16 @@ lemma id_one_apply {x y : fin 1} : (I 1) x y = 1
     cases yp,
     simp,
 end
+
+-- Slightly relaxed version of matrix.smul_apply for easier matching.
+-- Note the scalar type is ℝ, not ℂ.
+lemma Matrix.real_smul_apply {a : ℝ} {i : fin m} {j : fin n}
+        : (a • A) i j = a * A i j := rfl
+
+-- Slightly relaxed version of matrix.mul_smul for easier matching.
+-- Note the scalar type is ℝ, not ℂ.
+lemma Matrix.mul_real_smul {a : ℝ} : A ⬝ (a • B) = a • (A ⬝ B)
+:= by {apply matrix.mul_smul,}
 
 end matrix
 

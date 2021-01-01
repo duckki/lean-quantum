@@ -209,9 +209,7 @@ lemma proj_measure_state_after_proj_measure
 := begin
     intros up,
     unfold state_after_proj_measure,
-    have f: ∀ (s : Square n) (t : Vector n) (a : ℝ), s ⬝ (a • t) = a • (s ⬝ t),
-    { intros s t a, apply matrix.mul_smul },
-    rw f,
+    rw Matrix.mul_real_smul,
     rw <- matrix.mul_assoc,
     rw proj_self_square_of_proj_unit up,
 end
@@ -246,8 +244,8 @@ lemma proj_unit_std_basis : @proj_unit n std_basis
     unfold proj_unit, intros i, simp,
 end
 
-lemma proj_measure_eq_measure
-        : proj_measure std_basis s = ⟦s⟧
+lemma measure_eq_proj_measure
+        : ⟦s⟧ = proj_measure std_basis s
 := begin
     ext m,
     unfold quantum.measure,
@@ -260,6 +258,15 @@ lemma proj_measure_eq_measure
     {
         simp,
     }
+end
+
+lemma state_after_measure_eq_state_after_proj_measure
+        : state_after_measure s = state_after_proj_measure std_basis s
+:= begin
+    apply funext, intros m,
+    unfold state_after_proj_measure state_after_measure,
+    congr' 2,
+    rw measure_eq_proj_measure,
 end
 
 end projective_measurement_in_std_basis
@@ -284,7 +291,7 @@ lemma proj_measure_to_measure : proj_unit u
 := begin
     intros h,
     ext m,
-    rw <- proj_measure_eq_measure,
+    rw measure_eq_proj_measure,
     rw proj_measure_eq_norm_sq_inner h,
     rw proj_measure_eq_norm_sq_inner proj_unit_std_basis,
     congr' 2,
@@ -317,10 +324,7 @@ lemma state_after_proj_measure_to_measure
     intros up,
     unfold state_after_proj_measure state_after_measure,
     rw proj_measure_to_measure up,
-    -- need this since `matrix.mul_smul` is expecting ℂ smul, not ℝ smul.
-    have : ∀ (s : Square n) (t : Vector n) (a : ℝ), s ⬝ (a • t) = a • (s ⬝ t),
-    { intros s t a, apply matrix.mul_smul },
-    rw this, clear this,
+    rw Matrix.mul_real_smul,
     congr' 1,
     unfold proj_measure_op proj_measure_restore_op,
     rw <- matrix.mul_assoc,
