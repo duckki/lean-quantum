@@ -28,9 +28,9 @@ It's built on top of the "mathlib" library written by the Lean Community.
 
 ### The [src/theorems](src/theorems) directory
 
-* [no-clone.lean](src/theorems/no-clone.lean): Several different versions of the "No-clone" theorem.
+* [no-clone.lean](src/theorems/no-cloning.lean): Several different versions of the "no-cloning" theorems.
 
-* [random-number-generator.lean](src/theorems/random-number-generator.lean): A few examples of Hadamard gates.
+* [random-number-generator.lean](src/theorems/random-number-generator.lean): A few examples of Hadamard transform algorithm.
 
 
 ## Reference materials

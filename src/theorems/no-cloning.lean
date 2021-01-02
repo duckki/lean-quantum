@@ -5,12 +5,12 @@ open Matrix
 local notation `|0^(` n `)⟩` := ket_zeros n
 
 ------------------------------------------------------------------------------
--- no-clone theorem (with 1 input qubit and 1 ancilla qubit)
+-- no-cloning theorem (with 1 input qubit and 1 ancilla qubit)
 
-section no_clone_1
+section no_cloning_1
 
 -- Note: lean can't detect contradiction from `/√2 = 1/2`. Convert it to reals.
-lemma no_clone_contra_h : /√2 = 1/2 → false
+lemma no_cloning_contra_h : /√2 = 1/2 → false
 := begin
     intros h,
     let c1 := eq_of_one_div_eq_one_div h,
@@ -23,7 +23,7 @@ lemma no_clone_contra_h : /√2 = 1/2 → false
     linarith,
 end
 
-lemma no_clone_contra : ¬ (∀ (x y : Vector 2), (x† ⬝ y) = (x† ⬝ y) ⊗ (x† ⬝ y))
+lemma no_cloning_contra : ¬ (∀ (x y : Vector 2), (x† ⬝ y) = (x† ⬝ y) ⊗ (x† ⬝ y))
 := begin
     intros h,
     have f1: (|0⟩† ⬝ |+⟩) = λ _ _, /√2, {
@@ -51,10 +51,10 @@ lemma no_clone_contra : ¬ (∀ (x y : Vector 2), (x† ⬝ y) = (x† ⬝ y) �
         rw <- f1',
         rw <- f2',
     },
-    apply no_clone_contra_h c,
+    apply no_cloning_contra_h c,
 end
 
-theorem no_clone_1
+theorem no_cloning_1
     : ¬ (∃ (U : Matrix 4 4), U.unitary ∧ ∀ s : Vector 2, U ⬝ (s ⊗ |0⟩) = s ⊗ s)
 := begin
     intros h, rcases h with ⟨U, ⟨H1, H2⟩⟩,
@@ -80,20 +80,20 @@ theorem no_clone_1
     },
 
     -- Part 2:  derive false from the `f1`.
-    apply no_clone_contra f1,
+    apply no_cloning_contra f1,
 end
 
-end no_clone_1
+end no_cloning_1
 
 
 ------------------------------------------------------------------------------
--- no-clone theorem 2 (with n input qubit and n ancilla qubit)
--- Similar to no_clone_1, but generalized with n qubits.
+-- no-cloning theorem 2 (with n input qubit and n ancilla qubit)
+-- Similar to no_cloning_1, but generalized with n qubits.
 
-section no_clone_2
+section no_cloning_2
 
 -- Note: The vector size needs to have this formula: (2 * 2^n) to make it easier to match.
-lemma no_clone_contra_2 (n : ℕ) : ¬ (∀ (x y : Vector 2 * (2^n)), (x† ⬝ y) = (x† ⬝ y) ⊗ (x† ⬝ y))
+lemma no_cloning_contra_2 (n : ℕ) : ¬ (∀ (x y : Vector 2 * (2^n)), (x† ⬝ y) = (x† ⬝ y) ⊗ (x† ⬝ y))
 := begin
     intros h,
     have f1: ((|0⟩ ⊗ |0^(n)⟩)†) ⬝ (|+⟩ ⊗ |0^(n)⟩) = λ _ _, /√2, {
@@ -126,10 +126,10 @@ lemma no_clone_contra_2 (n : ℕ) : ¬ (∀ (x y : Vector 2 * (2^n)), (x† ⬝ 
         rw <- f1',
         rw <- f2',
     },
-    apply no_clone_contra_h c,
+    apply no_cloning_contra_h c,
 end
 
-theorem no_clone_2 (n : ℕ) (npos : 0 < n)
+theorem no_cloning_2 (n : ℕ) (npos : 0 < n)
     : ¬ (∃ (U : Square (2^n * 2^n))
          , U.unitary ∧ ∀ (s : Vector 2^n), U ⬝ (s ⊗ |0^(n)⟩) = s ⊗ s)
 := begin
@@ -159,23 +159,23 @@ theorem no_clone_2 (n : ℕ) (npos : 0 < n)
     cases n, {
         exfalso, linarith,
     }, {
-        apply no_clone_contra_2 _ f1,
+        apply no_cloning_contra_2 _ f1,
     },
 end
 
-end no_clone_2
+end no_cloning_2
 
 
 ------------------------------------------------------------------------------
--- no-clone theorem 3 (with 1 input qubit and (n+1) ancilla qubits)
+-- no-cloning theorem 3 (with 1 input qubit and (n+1) ancilla qubits)
 
-section no_clone_3_helpers
+section no_cloning_3_helpers
 
 variables {n : ℕ}
 variables {U : Square (2 ^ (n + 2))} {f : (Vector 2) → Vector (2^n)}
 
 -- Any `f x` must be unit, since `U` is a unitary operator.
-lemma no_clone_3_unit {x : Vector 2} :
+lemma no_cloning_3_unit {x : Vector 2} :
     (∀ s : Vector 2, s.unit → U ⬝ (s ⊗ (|0^(n+1)⟩)) = (s ⊗ (s ⊗ (f s))))
     → U.unitary → x.unit
     → (f x).unit
@@ -195,7 +195,7 @@ lemma no_clone_3_unit {x : Vector 2} :
 end
 
 -- The contradictory formula
-lemma no_clone_3_contradiction {x y : Vector 2} :
+lemma no_cloning_3_contradiction {x y : Vector 2} :
     (∀ s : Vector 2, s.unit → U ⬝ (s ⊗ (|0^(n+1)⟩)) = (s ⊗ (s ⊗ (f s))))
     → U.unitary → x.unit → y.unit
     → (x†) ⬝ y ≠ 0
@@ -224,9 +224,9 @@ lemma no_clone_3_contradiction {x y : Vector 2} :
     apply matrix_mul_cancel_left_square_one f2; assumption,
 end
 
-end no_clone_3_helpers
+end no_cloning_3_helpers
 
-theorem no_clone_3 {n}
+theorem no_cloning_3 {n}
     : ¬ (∃ (U : Square (2 ^ (n + 2))) (f : (Vector 2) → Vector (2^n))
          , U.unitary
          ∧ (∀ s : Vector 2, s.unit → U ⬝ (s ⊗ (|0^(n+1)⟩)) = (s ⊗ (s ⊗ (f s)))))
@@ -238,10 +238,10 @@ theorem no_clone_3 {n}
     -- Step 1. Derive facts about "f" based on the fact that
     --         U is a unitary operatros.
     have f_ket0_unit: (f |0⟩).unit, {
-        apply no_clone_3_unit h u; try {solve1 {simp *}},
+        apply no_cloning_3_unit h u; try {solve1 {simp *}},
     },
     have f_ket_plus_unit: (f |+⟩).unit, {
-        apply no_clone_3_unit h u; try {solve1 {simp *}},
+        apply no_cloning_3_unit h u; try {solve1 {simp *}},
     },
     have f1: |⟪ f |0⟩, f |+⟩ ⟫| ≤ 1, {
         apply inner_product_bound_of_unit; assumption,
@@ -249,7 +249,7 @@ theorem no_clone_3 {n}
 
     -- Step 2. Derive the contradictory fact from the expected result state.
     have c1: (|0⟩† ⬝ |+⟩) ⬝ ((f |0⟩)† ⬝ f |+⟩) = 1, {
-        apply no_clone_3_contradiction h; simp <|> assumption,
+        apply no_cloning_3_contradiction h; simp <|> assumption,
         rw inner_product_zero_iff, rw inner_ket0_ket_plus, simp,
     },
 
@@ -280,17 +280,17 @@ end
 
 
 ------------------------------------------------------------------------------
--- no-clone theorem 3 (with 1 input qubit and (n+1) ancilla qubits)
+-- no-cloning theorem 3 (with 1 input qubit and (n+1) ancilla qubits)
 -- Alternative proof based on partial measure.
 
-lemma no_clone_3_alt_helper1 (i : fin 4) : (/√2 • (|0⟩ ⊗ |0⟩) i 0)† * (/√2 • (|1⟩ ⊗ |1⟩)) i 0 = 0
+lemma no_cloning_3_alt_helper1 (i : fin 4) : (/√2 • (|0⟩ ⊗ |0⟩) i 0)† * (/√2 • (|1⟩ ⊗ |1⟩)) i 0 = 0
 := begin
     unfold_qubits,
     unfold kron kron_div kron_mod,
     repeat { destruct_fin }; simp,
 end
 
-lemma no_clone_3_alt_helper2 : ⟦(|+⟩ ⊗ |+⟩)⟧ 1 = 1/4
+lemma no_cloning_3_alt_helper2 : ⟦(|+⟩ ⊗ |+⟩)⟧ 1 = 1/4
 := begin
     unfold quantum.measure,
     unfold_qubits,
@@ -298,7 +298,7 @@ lemma no_clone_3_alt_helper2 : ⟦(|+⟩ ⊗ |+⟩)⟧ 1 = 1/4
     repeat { destruct_fin }; simp; ring,
 end
 
-lemma no_clone_3_alt_helper3 : ⟦(/√2 • (|0⟩ ⊗ |0⟩)) + (/√2 • (|1⟩ ⊗ |1⟩))⟧ 1 = 0
+lemma no_cloning_3_alt_helper3 : ⟦(/√2 • (|0⟩ ⊗ |0⟩)) + (/√2 • (|1⟩ ⊗ |1⟩))⟧ 1 = 0
 := begin
     unfold quantum.measure,
     unfold_qubits,
@@ -306,7 +306,7 @@ lemma no_clone_3_alt_helper3 : ⟦(/√2 • (|0⟩ ⊗ |0⟩)) + (/√2 • (|1
     repeat { destruct_fin }; simp,
 end
 
-theorem no_clone_3_alt {n}
+theorem no_cloning_3_alt {n}
     : ¬ (∃ (U : Square (2 ^ (n + 2))) (f : (Vector 2) → Vector (2^n))
          , U.unitary
          ∧ (∀ s : Vector 2, s.unit → U ⬝ (s ⊗ (|0^(n+1)⟩)) = (s ⊗ (s ⊗ (f s)))))
@@ -363,13 +363,13 @@ theorem no_clone_3_alt {n}
     -- Step 5. Derive facts about "f" based on the fact that
     --         U is a unitary operatros.
     have f_ket0_unit: (f |0⟩).unit, {
-        apply no_clone_3_unit H u; try {solve1 {simp *}},
+        apply no_cloning_3_unit H u; try {solve1 {simp *}},
     },
     have f_ket1_unit: (f |1⟩).unit, {
-        apply no_clone_3_unit H u; try {solve1 {simp *}},
+        apply no_cloning_3_unit H u; try {solve1 {simp *}},
     },
     have f_ket_plus_unit: (f |+⟩).unit, {
-        apply no_clone_3_unit H u; try {solve1 {simp *}},
+        apply no_cloning_3_unit H u; try {solve1 {simp *}},
     },
 
     -- Step 6. Find contradiction form the partial measurements of both sides.
@@ -383,7 +383,7 @@ theorem no_clone_3_alt {n}
             apply partial_measure_add_kron_of_orthogonal,
             apply trace_proj_eq_one_of_unit; assumption,
             apply trace_proj_eq_one_of_unit; assumption, {
-                apply no_clone_3_alt_helper1,
+                apply no_cloning_3_alt_helper1,
             },
         },
         rw <- p1,
@@ -391,8 +391,8 @@ theorem no_clone_3_alt {n}
         rw step4,
     },
     have c2: (1/4 : ℝ) = 0, {
-        rw <- no_clone_3_alt_helper2,
-        rw <- no_clone_3_alt_helper3,
+        rw <- no_cloning_3_alt_helper2,
+        rw <- no_cloning_3_alt_helper3,
         apply c1,
     },
     norm_num at c2,
