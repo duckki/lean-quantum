@@ -128,6 +128,10 @@ def X : Square 2 := ![
     ![ 0, 1 ],
     ![ 1, 0 ]]
 
+def Z : Square 2 := ![
+    ![ 1, 0 ],
+    ![ 0, -1 ]]
+
 -- Hadamard gate
 noncomputable
 def H : Square 2 := ![
@@ -140,3 +144,56 @@ def CNOT : Square 4 := ![
     ![ 0, 1, 0, 0 ],
     ![ 0, 0, 0, 1 ],
     ![ 0, 0, 1, 0 ]]
+
+-- Controlled-Z gate
+def CZ : Square 4 := ![
+    ![ 1, 0, 0, 0 ],
+    ![ 0, 1, 0, 0 ],
+    ![ 0, 0, 1, 0 ],
+    ![ 0, 0, 0, -1 ]]
+
+def SWAP : Square 4 :=
+    ![ ![1, 0, 0, 0],
+       ![0, 0, 1, 0],
+       ![0, 1, 0, 0],
+       ![0, 0, 0, 1]]
+
+
+------------------------------------------------------------------------------
+-- Controlled-U gates
+
+section controlled_gate
+
+variables {n : ℕ} (U : Square n)
+
+/-- Controlled-U gate : |0⟩⟨0| ⊗ I + |1⟩⟨1| ⊗ U -/
+noncomputable
+def controlled_gate := |0⟩.proj ⊗ (I n) + |1⟩.proj ⊗ U
+
+/-- Upside-down Controlled-U gate (2-qubit case)-/
+noncomputable
+def gate_controlled (U : Square 2) := SWAP ⬝ controlled_gate U ⬝ SWAP
+
+end controlled_gate
+
+
+------------------------------------------------------------------------------
+-- Common projection operators
+
+def P0 : Square 2 := ![
+    ![ 1, 0 ],
+    ![ 0, 0 ]]
+
+def P1 : Square 2 := ![
+    ![ 0, 0 ],
+    ![ 0, 1 ]]
+
+noncomputable
+def P_plus : Square 2 := ![
+    ![ 1/2, 1/2 ],
+    ![ 1/2, 1/2 ]]
+
+noncomputable
+def P_minus : Square 2 := ![
+    ![ 1/2, -(1/2) ],
+    ![ -(1/2), 1/2 ]]

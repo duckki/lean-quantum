@@ -714,7 +714,7 @@ lemma kron_loc_composition (x : fin (n*m)): kron_loc (kron_div x) (kron_mod x) =
 end
 
 @[simp]
-lemma kron_div_kron_loc (k j : fin (n * m)) : kron_div (kron_loc k j) = k
+lemma kron_div_kron_loc {k : fin n} {j : fin m} : kron_div (kron_loc k j) = k
 := begin
     unfold kron_div kron_loc, simp,
     cases k with k kp,
@@ -728,7 +728,7 @@ lemma kron_div_kron_loc (k j : fin (n * m)) : kron_div (kron_loc k j) = k
 end
 
 @[simp]
-lemma kron_mod_kron_loc (k j : fin (n * m)) : kron_mod (kron_loc k j) = j
+lemma kron_mod_kron_loc {k : fin n} {j : fin m} : kron_mod (kron_loc k j) = j
 := begin
     unfold kron_mod kron_loc, simp,
     cases k with k kp,
@@ -749,6 +749,16 @@ lemma kron_loc_inj (a b : fin n) (c d : fin m) : kron_loc a c = kron_loc b d →
     simp,
     unfold kron_loc at h, simp at h,
     apply add_mul_congr; try {assumption},
+end
+
+lemma kron_loc_inj_iff (a b : fin n) (c d : fin m) : kron_loc a c = kron_loc b d ↔ a = b ∧ c = d
+:= begin
+    split, {
+        apply kron_loc_inj,
+    }, {
+        intros h, rcases h with ⟨h1, h2⟩,
+        cases h1, cases h2, clear h1 h2, refl,
+    }
 end
 
 end kron_loc
@@ -920,6 +930,20 @@ theorem kron_dist_over_add_left (C : Matrix p q) : (B + C) ⊗ A = B ⊗ A + C �
     ring,
 end
 
+lemma kron_dist_over_sub_right (C : Matrix p q) : A ⊗ (B - C) = A ⊗ B - A ⊗ C
+:= begin
+    apply matrix.ext, intros i j,
+    unfold kron, simp,
+    ring,
+end
+
+lemma kron_dist_over_sub_left (C : Matrix p q) : (B - C) ⊗ A = B ⊗ A - C ⊗ A
+:= begin
+    apply matrix.ext, intros i j,
+    unfold kron, simp,
+    ring,
+end
+
 @[simp]
 lemma kron_smul_right {s : ℂ} : A ⊗ (s • B) = s • (A ⊗ B)
 := begin
@@ -1029,6 +1053,39 @@ lemma kron_cancel_left {x : Matrix m n} {y z : Square 1} : x ⊗ y = x ⊗ z →
     }, {
         exfalso, apply h1, assumption,
     }
+end
+
+lemma kron_diagonal {n m} {A : fin n → ℂ} {B : fin m → ℂ}
+    : (matrix.diagonal A) ⊗ (matrix.diagonal B)
+        = matrix.diagonal (λ i, A (kron_div i) * B (kron_mod i))
+:= begin
+    apply kron_ext_mul, intros r s v w,
+    by_cases h1: r = s, {
+        cases h1, clear h1,
+        by_cases h2: v = w, {
+            cases h2, clear h2, simp,
+        }, {
+            have : (kron_loc r v) ≠ (kron_loc r w),
+            {
+                intros c,
+                rw kron_loc_inj_iff at c,
+                cc,
+            },
+            rw matrix.diagonal_apply_ne h2,
+            rw matrix.diagonal_apply_ne this,
+            simp,
+        }
+    }, {
+        have : (kron_loc r v) ≠ (kron_loc s w),
+        {
+            intros c,
+            rw kron_loc_inj_iff at c,
+            cc,
+        },
+        rw matrix.diagonal_apply_ne h1,
+        rw matrix.diagonal_apply_ne this,
+        simp,
+    },
 end
 
 end kron
@@ -1187,21 +1244,6 @@ lemma kron_sum_mul_mul : (∑ x, f x) * (∑ x, g x) = ∑ (x : fin (n * m)), f 
         }, {
             cases x,
             simp,
-            unfold kron_div kron_mod,
-            simp,
-            cases x_fst with i ip,
-            cases x_snd with j jp,
-            simp,
-            split, {
-                rw add_comm,
-                rw nat.add_mul_div_left,
-                rw nat.div_eq_of_lt; assumption <|> simp,
-                linarith,
-            }, {
-                rw add_comm,
-                rw nat.add_mod, simp,
-                rw nat.mod_eq_of_lt; assumption,
-            }
         }
     }
 end
@@ -1224,6 +1266,20 @@ theorem kron_mixed_prod : (a ⊗ b) ⬝ (c ⊗ d) = (a ⬝ c) ⊗ (b ⬝ d)
     congr,
     apply funext, intro x,
     ring,
+end
+
+lemma kron_mixed_prod_I_left : ((I q) ⊗ a) ⬝ (b ⊗ c) = b ⊗ (a ⬝ c)
+:= begin
+    have : b ⊗ (a ⬝ c) = ((I q) ⬝ b) ⊗ (a ⬝ c), by simp,
+    rw this, clear this,
+    rw kron_mixed_prod,
+end
+
+lemma kron_mixed_prod_I_right : (b ⊗ a) ⬝ ((I r) ⊗ c) = b ⊗ (a ⬝ c)
+:= begin
+    have : b ⊗ (a ⬝ c) = (b ⬝ (I r)) ⊗ (a ⬝ c), by simp,
+    rw this, clear this,
+    rw kron_mixed_prod,
 end
 
 end kron_mixed_prod

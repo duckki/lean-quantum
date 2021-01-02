@@ -220,6 +220,51 @@ lemma proj_std_basis_eq_zero2 {i j : fin n} : ¬ j = m → proj (std_basis m) i 
     }
 end
 
+lemma mul_proj_std_basis_left {n} {m : fin n} {U : Square n}
+    : proj (std_basis m) ⬝ U = λ i j, ite (i = m) (U i j) 0
+:= begin
+    apply matrix.ext, intros i j,
+    rw proj_std_basis_eq_diagonal,
+    rw matrix.diagonal_mul,
+    by_cases h: i = m, {
+        cases h, clear h, simp,
+    }, {
+        iterate 2 { rw if_neg h }, simp,
+    }
+end
+
+lemma mul_proj_std_basis_right {n} {m : fin n} {U : Square n}
+    : U ⬝ proj (std_basis m) = λ i j, ite (j = m) (U i j) 0
+:= begin
+    apply matrix.ext, intros i j,
+    rw proj_std_basis_eq_diagonal,
+    rw matrix.mul_diagonal,
+    by_cases h: j = m, {
+        cases h, clear h, simp,
+    }, {
+        iterate 2 { rw if_neg h }, simp,
+    }
+end
+
+lemma kron_proj_std_basis {m : fin 2} {U : Square 2}
+    : proj (std_basis m) ⊗ U = λ i j, ite (kron_div i = m ∧ kron_div j = m) (U (kron_mod i) (kron_mod j)) 0
+:= begin
+    apply kron_ext_mul, intros r s v w, simp,
+    by_cases h1: r = m, {
+        cases h1, clear h1, simp,
+        by_cases h2: s = m, {
+            cases h2, clear h2, simp,
+        }, {
+            rw proj_std_basis_eq_zero2 h2,
+            rw if_neg h2, simp,
+        }
+    }, {
+        rw proj_std_basis_eq_zero1 h1,
+        have : ¬ (r = m ∧ s = m), by cc,
+        rw if_neg this, simp,
+    }
+end
+
 end proj_std_basis
 
 
@@ -986,11 +1031,20 @@ lemma fin_has_one_two_by_two : has_one (fin (2 * 2))
 
 @[simp] lemma fin_0_div_1 : (⟨(0 : fin 1) / 2, by dec_trivial⟩ : fin 2) = ⟨0, by dec_trivial⟩ := by norm_num
 @[simp] lemma fin_0_mod_1 : (⟨(0 : fin 1) % 2, by dec_trivial⟩ : fin 2) = ⟨0, by dec_trivial⟩ := by norm_num
+@[simp] lemma fin_0_div_2' : (⟨(0 : fin (2*2)) / 2, by dec_trivial⟩ : fin 2) = ⟨0, by dec_trivial⟩ := by norm_cast
+@[simp] lemma fin_0_mod_2' : (⟨(0 : fin (2*2)) % 2, by dec_trivial⟩ : fin 2) = ⟨0, by dec_trivial⟩ := by norm_cast
 @[simp] lemma fin_1_div_2 : (⟨1 / 2, by dec_trivial⟩ : fin 2) = ⟨0, by dec_trivial⟩ := by norm_num
 @[simp] lemma fin_1_div_2' : (⟨(1 : fin (2*2)) / 2, by dec_trivial⟩ : fin 2) = ⟨0, by dec_trivial⟩ := by norm_cast
 @[simp] lemma fin_1_mod_2 : (⟨(1 : fin (2*2)) % 2, by dec_trivial⟩ : fin 2) = ⟨1, by dec_trivial⟩ := by norm_cast
+@[simp] lemma fin_2_div_2' : (⟨(2 : fin (2*2)) / 2, by dec_trivial⟩ : fin 2) = ⟨1, by dec_trivial⟩ := by norm_cast
+@[simp] lemma fin_2_mod_2' : (⟨(2 : fin (2*2)) % 2, by dec_trivial⟩ : fin 2) = ⟨0, by dec_trivial⟩ := by norm_cast
 @[simp] lemma fin_3_div_2 : (⟨(3 : fin (3+1)) / 2, by dec_trivial⟩ : fin 2) = ⟨1, by dec_trivial⟩ := by norm_cast
 @[simp] lemma fin_3_mod_2 : (⟨(3 : fin (3+1)) % 2, by dec_trivial⟩ : fin 2) = ⟨1, by dec_trivial⟩ := by norm_cast
+@[simp] lemma fin_3_div_2' : (⟨(3 : fin (2*2)) / 2, by dec_trivial⟩ : fin 2) = ⟨1, by dec_trivial⟩ := by norm_cast
+@[simp] lemma fin_3_mod_2' : (⟨(3 : fin (2*2)) % 2, by dec_trivial⟩ : fin 2) = ⟨1, by dec_trivial⟩ := by norm_cast
+
+@[simp] lemma fin_one_succ_succ_div_2' : (⟨(1 : ℕ).succ.succ / 2, by dec_trivial⟩ : fin 2) = ⟨1, by dec_trivial⟩ := by norm_cast
+@[simp] lemma fin_one_succ_succ_mod_2' : (⟨(1 : ℕ).succ.succ % 2, by dec_trivial⟩ : fin 2) = ⟨1, by dec_trivial⟩ := by norm_cast
 
 
 ------------------------------------------------------------------------------
@@ -1247,3 +1301,217 @@ end
 
 @[simp] lemma sqrt_two_inv_mul_self : (√2)⁻¹ * (√2)⁻¹ = 1/2
 := by {rw <- mul_inv'; simp}
+
+
+------------------------------------------------------------------------------
+-- Gate decompositions
+
+lemma P0_eq_proj_ket0 : P0 = proj |0⟩
+:= begin
+    unfold ket0 P0,
+    rw proj_std_basis_eq_diagonal,
+    grind_matrix; `[simp],
+end
+
+lemma P1_eq_proj_ket1 : P1 = proj |1⟩
+:= begin
+    unfold ket1 P1,
+    rw proj_std_basis_eq_diagonal,
+    grind_matrix; `[simp],
+end
+
+lemma I_eq_add_P0_P1 : (I 2) = P0 + P1
+:= begin
+    unfold P0 P1,
+    grind_matrix; `[simp],
+end
+
+lemma I_eq_add_P_plus_P_minus : (I 2) = P_plus + P_minus
+:= begin
+    unfold X P_plus P_minus,
+    grind_matrix; `[simp; ring],
+end
+
+lemma X_eq_sub_P_plus_P_minus : X = P_plus - P_minus
+:= begin
+    unfold X P_plus P_minus,
+    grind_matrix; `[simp; ring],
+end
+
+lemma Z_eq_sub_P0_P1 : Z = P0 - P1
+:= begin
+    unfold Z P0 P1,
+    grind_matrix; `[simp],
+end
+
+lemma CNOT_decompose : CNOT = P0 ⊗ (I 2) + P1 ⊗ X
+:= begin
+    have r1 : P0 ⊗ (I 2) = λ (i j : fin (2*2)), ite (kron_div i = 0 ∧ kron_div j = 0) ((I 2) (kron_mod i) (kron_mod j)) 0,
+    {
+        rw P0_eq_proj_ket0, unfold ket0,
+        apply kron_proj_std_basis,
+    },
+    have r2 : P1 ⊗ X = λ (i j : fin (2*2)), ite (kron_div i = 1 ∧ kron_div j = 1) (X (kron_mod i) (kron_mod j)) 0,
+    {
+        rw P1_eq_proj_ket1, unfold ket1,
+        apply kron_proj_std_basis,
+    },
+    unfold CNOT,
+    rw r1, rw r2,
+    unfold X kron_div kron_mod,
+    grind_matrix; `[simp],
+end
+
+lemma CZ_decompose : CZ = P0 ⊗ (I 2) + P1 ⊗ Z
+:= begin
+    have r1 : P0 ⊗ (I 2) = λ (i j : fin (2*2)), ite (kron_div i = 0 ∧ kron_div j = 0) ((I 2) (kron_mod i) (kron_mod j)) 0,
+    {
+        rw P0_eq_proj_ket0, unfold ket0,
+        apply kron_proj_std_basis,
+    },
+    have r2 : P1 ⊗ Z = λ (i j : fin (2*2)), ite (kron_div i = 1 ∧ kron_div j = 1) (Z (kron_mod i) (kron_mod j)) 0,
+    {
+        rw P1_eq_proj_ket1, unfold ket1,
+        apply kron_proj_std_basis,
+    },
+    unfold CZ,
+    rw r1, rw r2,
+    unfold Z kron_div kron_mod,
+    grind_matrix; `[simp],
+end
+
+lemma CZ_decompose_alt : CZ = (I 2) ⊗ P0 + Z ⊗ P1
+:= begin
+    rw CZ_decompose,
+
+    rw Z_eq_sub_P0_P1,
+    rw kron_dist_over_sub_left,
+    rw kron_dist_over_sub_right,
+    rw add_sub,
+    rw add_sub,
+    congr' 1,
+
+    rw <- matrix.diagonal_one,
+    rw P0_eq_proj_ket0,
+    unfold ket0,
+    rw proj_std_basis_eq_diagonal,
+    rw kron_diagonal,
+    rw P1_eq_proj_ket1,
+    unfold ket1,
+    rw proj_std_basis_eq_diagonal,
+    iterate 3 { rw kron_diagonal },
+    iterate 2 { rw matrix.diagonal_add },
+    congr,
+    apply funext, intros i,
+    cases i with i ip,
+    unfold kron_div kron_mod,
+    iterate 4 { cases i, by simp },
+    destruct_fin,
+end
+
+lemma mul_P0_H : P0 ⬝ H = ![ ![ /√2, /√2 ],
+                             ![ 0, 0 ] ]
+:= begin
+    rw P0_eq_proj_ket0,
+    unfold ket0,
+    rw mul_proj_std_basis_left,
+    unfold H,
+    grind_matrix; `[simp],
+end
+
+lemma mul_P1_H : P1 ⬝ H = ![ ![ 0, 0 ],
+                            ![ /√2, -/√2 ] ]
+:= begin
+    rw P1_eq_proj_ket1, unfold ket1,
+    rw mul_proj_std_basis_left,
+    unfold H,
+    grind_matrix; `[simp],
+end
+
+lemma H_P0_H_eq_P_plus : H ⬝ P0 ⬝ H = P_plus
+:= begin
+    rw matrix.mul_assoc,
+    rw mul_P0_H,
+    unfold H P_plus,
+    grind_matrix; `[ simp, norm_cast, simp ],
+end
+
+lemma H_P1_H_eq_P_minus : H ⬝ P1 ⬝ H = P_minus
+:= begin
+    rw matrix.mul_assoc,
+    rw mul_P1_H,
+    unfold H P_minus,
+    grind_matrix; `[ simp, norm_cast, simp ],
+end
+
+theorem CNOT_eq_H_CZ_H : CNOT = ((I 2) ⊗ H) ⬝ CZ ⬝ ((I 2) ⊗ H)
+:= begin
+    rw CNOT_decompose,
+    rw I_eq_add_P_plus_P_minus,
+    rw X_eq_sub_P_plus_P_minus,
+    have : P0 ⊗ (P_plus + P_minus) + P1 ⊗ (P_plus - P_minus)
+        = (P0 + P1) ⊗ P_plus + (P0 - P1) ⊗ P_minus,
+    {
+        rw kron_dist_over_add_right,
+        rw kron_dist_over_sub_right,
+        rw kron_dist_over_add_left,
+        rw kron_dist_over_sub_left,
+        abel,
+    },
+    rw this, clear this,
+    rw <- I_eq_add_P0_P1,
+    rw <- Z_eq_sub_P0_P1,
+    have l1: (I 2) ⊗ P_plus = ((I 2) ⊗ H) ⬝ ((I 2) ⊗ P0) ⬝ ((I 2) ⊗ H),
+    {
+        rw <- H_P0_H_eq_P_plus,
+        rw kron_mixed_prod_I_left,
+        rw kron_mixed_prod_I_left,
+    },
+    have l2: Z ⊗ P_minus = ((I 2) ⊗ H) ⬝ (Z ⊗ P1) ⬝ ((I 2) ⊗ H),
+    {
+        rw <- H_P1_H_eq_P_minus,
+        rw kron_mixed_prod_I_left,
+        rw kron_mixed_prod_I_right,
+    },
+    rw l1, clear l1,
+    rw l2, clear l2,
+    rw <- I_eq_add_P_plus_P_minus,
+    rw <- matrix.add_mul,
+    congr' 1,
+    rw <- matrix.mul_add,
+    congr' 1,
+    rw CZ_decompose_alt,
+end
+
+
+------------------------------------------------------------------------------
+-- Controlled-U gates definitions
+
+lemma CNOT_def : CNOT = controlled_gate X
+:= begin
+    rw CNOT_decompose,
+    unfold controlled_gate,
+    rw P0_eq_proj_ket0,
+    rw P1_eq_proj_ket1,
+end
+
+lemma CZ_def : CZ = controlled_gate Z
+:= begin
+    rw CZ_decompose,
+    unfold controlled_gate,
+    rw P0_eq_proj_ket0,
+    rw P1_eq_proj_ket1,
+end
+
+lemma CZ_eq_upside_down : CZ = SWAP ⬝ CZ ⬝ SWAP
+:= begin
+    unfold CZ SWAP,
+    grind_matrix; `[simp],
+end
+
+lemma CZ_def' : CZ = gate_controlled Z
+:= begin
+    unfold gate_controlled,
+    rw <- CZ_def,
+    apply CZ_eq_upside_down,
+end
