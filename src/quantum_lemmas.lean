@@ -1014,15 +1014,15 @@ meta def solve_std_basis_zero := `[rw std_basis_eq_zero, dec_trivial]
 -- More proof automation lemmas related to "fin" type.
 
 @[instance]
-lemma fin_has_zero_one_by_one : has_zero (fin (1 * 1))
+def fin_has_zero_one_by_one : has_zero (fin (1 * 1))
 := by {split, exact ⟨0, by dec_trivial⟩}
 
 @[instance]
-lemma fin_has_zero_two_by_two : has_zero (fin (2 * 2))
+def fin_has_zero_two_by_two : has_zero (fin (2 * 2))
 := by {split, exact ⟨0, by dec_trivial⟩}
 
 @[instance]
-lemma fin_has_one_two_by_two : has_one (fin (2 * 2))
+def fin_has_one_two_by_two : has_one (fin (2 * 2))
 := by {split, exact ⟨1, by dec_trivial⟩}
 
 
@@ -1221,10 +1221,11 @@ end
 ------------------------------------------------------------------------------------------------
 -- gate lemmas
 
-meta def unfold_gates := `[try {unfold X H CNOT}]
+meta def unfold_gates := `[try {unfold X Z H CNOT CZ SWAP}]
 meta def solve_matrix_mul := `[unfold_gates; unfold_qubits; grind_matrix; grind_dot_product; finish_complex_arith]
 
 @[simp] lemma X_unitary : X† ⬝ X = 1 := by solve_matrix_mul
+@[simp] lemma Z_unitary : Z† ⬝ Z = 1 := by solve_matrix_mul
 @[simp] lemma H_unitary : H† ⬝ H = 1 := by solve_matrix_mul
 
 meta def solve_matrix_apply_eq := `[unfold_gates; grind_dot_product; finish_complex_arith]
@@ -1252,6 +1253,52 @@ meta def solve_matrix_apply_eq := `[unfold_gates; grind_dot_product; finish_comp
 @[simp] lemma CNOT_unitary : CNOT† ⬝ CNOT = 1 := by {grind_matrix; finish_complex_arith}
 
 
+@[simp] lemma CZ_inner_self_0_0 : (CZ† ⬝ CZ) 0 0 = 1 := by solve_matrix_apply_eq
+@[simp] lemma CZ_inner_self_0_1 : (CZ† ⬝ CZ) 0 1 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CZ_inner_self_0_2 : (CZ† ⬝ CZ) 0 2 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CZ_inner_self_0_3 : (CZ† ⬝ CZ) 0 3 = 0 := by solve_matrix_apply_eq
+
+@[simp] lemma CZ_inner_self_1_0 : (CZ† ⬝ CZ) 1 0 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CZ_inner_self_1_1 : (CZ† ⬝ CZ) 1 1 = 1 := by solve_matrix_apply_eq
+@[simp] lemma CZ_inner_self_1_2 : (CZ† ⬝ CZ) 1 2 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CZ_inner_self_1_3 : (CZ† ⬝ CZ) 1 3 = 0 := by solve_matrix_apply_eq
+
+@[simp] lemma CZ_inner_self_2_0 : (CZ† ⬝ CZ) 2 0 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CZ_inner_self_2_1 : (CZ† ⬝ CZ) 2 1 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CZ_inner_self_2_2 : (CZ† ⬝ CZ) 2 2 = 1 := by solve_matrix_apply_eq
+@[simp] lemma CZ_inner_self_2_3 : (CZ† ⬝ CZ) 2 3 = 0 := by solve_matrix_apply_eq
+
+@[simp] lemma CZ_inner_self_3_0 : (CZ† ⬝ CZ) 3 0 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CZ_inner_self_3_1 : (CZ† ⬝ CZ) 3 1 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CZ_inner_self_3_2 : (CZ† ⬝ CZ) 3 2 = 0 := by solve_matrix_apply_eq
+@[simp] lemma CZ_inner_self_3_3 : (CZ† ⬝ CZ) 3 3 = 1 := by solve_matrix_apply_eq
+
+lemma CZ_unitary : CZ† ⬝ CZ = 1 := by {grind_matrix; finish_complex_arith}
+
+
+@[simp] lemma SWAP_inner_self_0_0 : (SWAP† ⬝ SWAP) 0 0 = 1 := by solve_matrix_apply_eq
+@[simp] lemma SWAP_inner_self_0_1 : (SWAP† ⬝ SWAP) 0 1 = 0 := by solve_matrix_apply_eq
+@[simp] lemma SWAP_inner_self_0_2 : (SWAP† ⬝ SWAP) 0 2 = 0 := by solve_matrix_apply_eq
+@[simp] lemma SWAP_inner_self_0_3 : (SWAP† ⬝ SWAP) 0 3 = 0 := by solve_matrix_apply_eq
+
+@[simp] lemma SWAP_inner_self_1_0 : (SWAP† ⬝ SWAP) 1 0 = 0 := by solve_matrix_apply_eq
+@[simp] lemma SWAP_inner_self_1_1 : (SWAP† ⬝ SWAP) 1 1 = 1 := by solve_matrix_apply_eq
+@[simp] lemma SWAP_inner_self_1_2 : (SWAP† ⬝ SWAP) 1 2 = 0 := by solve_matrix_apply_eq
+@[simp] lemma SWAP_inner_self_1_3 : (SWAP† ⬝ SWAP) 1 3 = 0 := by solve_matrix_apply_eq
+
+@[simp] lemma SWAP_inner_self_2_0 : (SWAP† ⬝ SWAP) 2 0 = 0 := by solve_matrix_apply_eq
+@[simp] lemma SWAP_inner_self_2_1 : (SWAP† ⬝ SWAP) 2 1 = 0 := by solve_matrix_apply_eq
+@[simp] lemma SWAP_inner_self_2_2 : (SWAP† ⬝ SWAP) 2 2 = 1 := by solve_matrix_apply_eq
+@[simp] lemma SWAP_inner_self_2_3 : (SWAP† ⬝ SWAP) 2 3 = 0 := by solve_matrix_apply_eq
+
+@[simp] lemma SWAP_inner_self_3_0 : (SWAP† ⬝ SWAP) 3 0 = 0 := by solve_matrix_apply_eq
+@[simp] lemma SWAP_inner_self_3_1 : (SWAP† ⬝ SWAP) 3 1 = 0 := by solve_matrix_apply_eq
+@[simp] lemma SWAP_inner_self_3_2 : (SWAP† ⬝ SWAP) 3 2 = 0 := by solve_matrix_apply_eq
+@[simp] lemma SWAP_inner_self_3_3 : (SWAP† ⬝ SWAP) 3 3 = 1 := by solve_matrix_apply_eq
+
+lemma SWAP_unitary : SWAP† ⬝ SWAP = 1 := by {grind_matrix; finish_complex_arith}
+
+
 ------------------------------------------------------------------------------
 -- gate and state lemmas
 
@@ -1267,6 +1314,54 @@ meta def solve_matrix_apply_eq := `[unfold_gates; grind_dot_product; finish_comp
 @[simp] lemma CNOT_ket01_eq_ket01 : CNOT ⬝ |01⟩ = |01⟩ := by solve_matrix_mul
 @[simp] lemma CNOT_ket10_eq_ket11 : CNOT ⬝ |10⟩ = |11⟩ := by solve_matrix_mul
 @[simp] lemma CNOT_ket11_eq_ket10 : CNOT ⬝ |11⟩ = |10⟩ := by solve_matrix_mul
+
+
+------------------------------------------------------------------------------
+-- SWAP gate lemmas
+
+section SWAP_lemmas
+
+variables {a b : Vector 2}
+
+meta def unfold_swap_app := `[unfold SWAP; simp; unfold matrix.vec_head matrix.vec_tail]
+meta def solve_swap_kron := unfold_swap_app; `[unfold kron kron_div kron_mod; repeat {simp <|> ring}]
+
+lemma SWAP_kron_0 : (SWAP ⬝ (a ⊗ b)) ⟨0, by dec_trivial⟩ ⟨0, by dec_trivial⟩ = (b ⊗ a) 0 0
+:= by solve_swap_kron
+lemma SWAP_kron_1 : (SWAP ⬝ (a ⊗ b)) ⟨1, by dec_trivial⟩ ⟨0, by dec_trivial⟩ = (b ⊗ a) 1 0
+:= by solve_swap_kron
+lemma SWAP_kron_2 : (SWAP ⬝ (a ⊗ b)) ⟨2, by dec_trivial⟩ ⟨0, by dec_trivial⟩ = (b ⊗ a) 2 0
+:= by solve_swap_kron
+lemma SWAP_kron_3 : (SWAP ⬝ (a ⊗ b)) ⟨3, by dec_trivial⟩ ⟨0, by dec_trivial⟩ = (b ⊗ a) 3 0
+:= by solve_swap_kron
+
+@[simp] lemma SWAP_kron_0' : (SWAP ⬝ (a ⊗ b)) (⟨0, by dec_trivial⟩ : fin (2*2)) ⟨0, by dec_trivial⟩
+                             = (b ⊗ a) 0 0
+:= by apply SWAP_kron_0
+
+@[simp] lemma SWAP_kron_1' : (SWAP ⬝ (a ⊗ b)) (⟨1, by dec_trivial⟩ : fin (2*2)) ⟨0, by dec_trivial⟩
+                             = (b ⊗ a) 1 0
+:= by apply SWAP_kron_1
+
+@[simp] lemma SWAP_kron_2' : (SWAP ⬝ (a ⊗ b)) (bit0 (⟨1, by dec_trivial⟩ : fin (2*2))) ⟨0, by dec_trivial⟩
+                             = (b ⊗ a) 2 0
+:= by apply SWAP_kron_2
+
+@[simp] lemma SWAP_kron_3' : (SWAP ⬝ (a ⊗ b)) (⟨2 + 1, by dec_trivial⟩ : fin (2*2)) ⟨0, by dec_trivial⟩
+                             = (b ⊗ a) 3 0
+:= by apply SWAP_kron_3
+
+lemma SWAP_kron : SWAP ⬝ (a ⊗ b) = b ⊗ a
+:= begin
+    symmetry,
+    apply kron_ext_mul, intros r s v w,
+    unfold kron_loc,
+    repeat { destruct_fin }; {
+        simp, unfold kron kron_div kron_mod, simp,
+    },
+end
+
+end SWAP_lemmas
 
 
 ------------------------------------------------------------------------------
@@ -1503,7 +1598,8 @@ lemma CZ_def : CZ = controlled_gate Z
     rw P1_eq_proj_ket1,
 end
 
-lemma CZ_eq_upside_down : CZ = SWAP ⬝ CZ ⬝ SWAP
+-- CZ gate's control and target can be swapped and the operater is still the same.
+lemma CZ_symmetry : CZ = SWAP ⬝ CZ ⬝ SWAP
 := begin
     unfold CZ SWAP,
     grind_matrix; `[simp],
