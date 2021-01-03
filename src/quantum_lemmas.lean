@@ -1609,5 +1609,5 @@ lemma CZ_def' : CZ = gate_controlled Z
 := begin
     unfold gate_controlled,
     rw <- CZ_def,
-    apply CZ_eq_upside_down,
+    apply CZ_symmetry,
 end
