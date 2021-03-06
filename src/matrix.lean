@@ -1,9 +1,11 @@
+import data.complex.basic
 import data.complex.is_R_or_C
+import analysis.complex.basic -- for `is_R_or_C ℂ`
 import data.matrix.basic
 import common_lemmas
 
 ------------------------------------------------------------------------------
--- Convenience definition for complex numbers
+-- Convenience definition for real/complex numbers
 
 notation |x| := is_R_or_C.abs x
 notation x `†`:90 := @is_R_or_C.conj _ _ x
@@ -19,6 +21,8 @@ namespace Matrix
 
 variables {m n : ℕ}
 
+-- Definition of `adjoint` or `†` (dagger) operator.
+-- Note: `star` doesn't fit here, since it's expecting `Matrix m m → Matrix m m`.
 noncomputable
 def adjoint (M : Matrix m n) : Matrix n m
 | x y := (M y x)†
@@ -112,4 +116,4 @@ def kron_loc (r : fin m) (v : fin p) : fin (m * p) :=
 
 end kron
 
-infixl ` ⊗ `:75 := kron  -- same as ` ⬝ ` for now
+infixl ` ⊗ `:75 := kron

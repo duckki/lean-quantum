@@ -703,8 +703,9 @@ lemma kron_loc_composition (x : fin (n*m)): kron_loc (kron_div x) (kron_mod x) =
     simp,
     have f1: 0 < m, {
         cases m, {
+            exfalso,
             simp at xp,
-            exfalso, linarith,
+            assumption,
         }, {
             simp,
         }
@@ -1583,12 +1584,6 @@ conj_sym :=
         iterate 2 { rw Matrix_inner_eq_matrix_inner, },
         unfold inner,
         rw <- conj_inner_product, simp,
-    end,
-nonneg_im :=
-    begin
-        intros x,
-        rw Matrix_inner_eq_matrix_inner,
-        unfold inner, simp,
     end,
 add_left :=
     begin

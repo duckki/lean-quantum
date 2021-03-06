@@ -469,8 +469,6 @@ theorem trace_partial_trace {v : Square n*m} : Tr(partial_trace v) = Tr(v)
     rw <- finset.sum_preimage (λ x : fin n × fin m, (kron_loc x.fst x.snd : fin (n * m))), {
         rw <- finset.sum_product',
         simp,
-        congr' 1,
-        ext; simp,
     }, {
         simp,
         unfold set.inj_on,
@@ -718,7 +716,7 @@ lemma measure_state_after_measure_eq_one {i : fin n}
     rw Matrix.real_smul_apply,
     rw matrix.mul_apply,
     rw finset.sum_eq_single m, {
-        simp, ring,
+        simp, rw mul_comm,
         rw mul_inv_cancel, {
             intro c,
             apply sp, clear sp,
@@ -785,7 +783,6 @@ lemma partial_measure_proj_kron
     rw partial_trace_kron,
     rw vu, simp,
     rw proj_diagnonal_eq_norm_sq, simp,
-    rw _root_.abs_of_nonneg, simp,
 end
 
 lemma partial_measure_eq_of_kron_eq :

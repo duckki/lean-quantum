@@ -414,6 +414,7 @@ lemma cauchy_schwarz_inequality_step2_1 : ⟪u,(-(⟪v,u⟫/⟪v,v⟫)) • v⟫
     rw mul_assoc,
     rw inner_product_mul_eq_norm_sq,
     rw norm_sq_eq_abs, simp,
+    ring,
 end
 
 lemma cauchy_schwarz_inequality_step2_2 : ⟪(-(⟪v,u⟫/⟪v,v⟫)) • v, u⟫ = -|⟪u,v⟫|^2/⟪v,v⟫
@@ -433,6 +434,7 @@ lemma cauchy_schwarz_inequality_step2_2 : ⟪(-(⟪v,u⟫/⟪v,v⟫)) • v, u�
     norm_cast,
     repeat { rw <- is_R_or_C.abs_to_complex },
     rw abs_inner_product_comm,
+    ring,
 end
 
 lemma cauchy_schwarz_inequality_step2_3 : v ≠ 0 → ∥-(⟪v,u⟫/⟪v,v⟫) • v∥ ^ 2 = |⟪u,v⟫|^2/(re ⟪v,v⟫)
@@ -768,7 +770,6 @@ noncomputable
 instance : inner_product_space 𝕜 (m → 𝕜) := {
     norm_sq_eq_inner := by {unfold inner, intros, rw has_norm_sq_eq_re_inner_product_self},
     conj_sym := by {unfold inner, intros, rw <- conj_inner_product, simp},
-    nonneg_im := by {unfold inner, intros x, simp},
     add_left := by {unfold inner, apply inner_product_add_left},
     smul_left := by {unfold inner, apply inner_product_smul_l},
 }
